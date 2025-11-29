@@ -320,8 +320,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Mapbox** for mapping and routing services
 - **Weatherbit** for weather data
-- **Clerk** for authentication
-- **RevenueCat** for subscription management
+- **Clerk** for authentication and subscription management
 - **Apple** for CoreML and native frameworks
 
 ## 📞 Support
