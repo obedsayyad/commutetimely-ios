@@ -1,0 +1,646 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		183BC7942ED4C1B200C73B5D /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 183BC7932ED4C1B200C73B5D /* Alamofire */; };
+		1845C6B82ED615EA00768CEB /* Clerk in Frameworks */ = {isa = PBXBuildFile; productRef = 1845C6B72ED615EA00768CEB /* Clerk */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		183BC6EB2ED4AED400C73B5D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 183BC6D52ED4AED100C73B5D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 183BC6DC2ED4AED100C73B5D;
+			remoteInfo = CommuteTimely;
+		};
+		183BC6F52ED4AED400C73B5D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 183BC6D52ED4AED100C73B5D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 183BC6DC2ED4AED100C73B5D;
+			remoteInfo = CommuteTimely;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		183BC6DD2ED4AED100C73B5D /* CommuteTimely.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CommuteTimely.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		183BC6EA2ED4AED400C73B5D /* CommuteTimelyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommuteTimelyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		183BC6F42ED4AED400C73B5D /* CommuteTimelyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommuteTimelyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		183BC6DF2ED4AED100C73B5D /* CommuteTimely */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CommuteTimely;
+			sourceTree = "<group>";
+		};
+		183BC6ED2ED4AED400C73B5D /* CommuteTimelyTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CommuteTimelyTests;
+			sourceTree = "<group>";
+		};
+		183BC6F72ED4AED400C73B5D /* CommuteTimelyUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CommuteTimelyUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		183BC6DA2ED4AED100C73B5D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1845C6B82ED615EA00768CEB /* Clerk in Frameworks */,
+				183BC7942ED4C1B200C73B5D /* Alamofire in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		183BC6E72ED4AED400C73B5D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		183BC6F12ED4AED400C73B5D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		183BC6D42ED4AED100C73B5D = {
+			isa = PBXGroup;
+			children = (
+				183BC6DF2ED4AED100C73B5D /* CommuteTimely */,
+				183BC6ED2ED4AED400C73B5D /* CommuteTimelyTests */,
+				183BC6F72ED4AED400C73B5D /* CommuteTimelyUITests */,
+				183BC6DE2ED4AED100C73B5D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		183BC6DE2ED4AED100C73B5D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				183BC6DD2ED4AED100C73B5D /* CommuteTimely.app */,
+				183BC6EA2ED4AED400C73B5D /* CommuteTimelyTests.xctest */,
+				183BC6F42ED4AED400C73B5D /* CommuteTimelyUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		183BC6DC2ED4AED100C73B5D /* CommuteTimely */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 183BC6FE2ED4AED400C73B5D /* Build configuration list for PBXNativeTarget "CommuteTimely" */;
+			buildPhases = (
+				183BC6D92ED4AED100C73B5D /* Sources */,
+				183BC6DA2ED4AED100C73B5D /* Frameworks */,
+				183BC6DB2ED4AED100C73B5D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				183BC6DF2ED4AED100C73B5D /* CommuteTimely */,
+			);
+			name = CommuteTimely;
+			packageProductDependencies = (
+				183BC7932ED4C1B200C73B5D /* Alamofire */,
+				1845C6B72ED615EA00768CEB /* Clerk */,
+			);
+			productName = CommuteTimely;
+			productReference = 183BC6DD2ED4AED100C73B5D /* CommuteTimely.app */;
+			productType = "com.apple.product-type.application";
+		};
+		183BC6E92ED4AED400C73B5D /* CommuteTimelyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 183BC7012ED4AED400C73B5D /* Build configuration list for PBXNativeTarget "CommuteTimelyTests" */;
+			buildPhases = (
+				183BC6E62ED4AED400C73B5D /* Sources */,
+				183BC6E72ED4AED400C73B5D /* Frameworks */,
+				183BC6E82ED4AED400C73B5D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				183BC6EC2ED4AED400C73B5D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				183BC6ED2ED4AED400C73B5D /* CommuteTimelyTests */,
+			);
+			name = CommuteTimelyTests;
+			packageProductDependencies = (
+			);
+			productName = CommuteTimelyTests;
+			productReference = 183BC6EA2ED4AED400C73B5D /* CommuteTimelyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		183BC6F32ED4AED400C73B5D /* CommuteTimelyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 183BC7042ED4AED400C73B5D /* Build configuration list for PBXNativeTarget "CommuteTimelyUITests" */;
+			buildPhases = (
+				183BC6F02ED4AED400C73B5D /* Sources */,
+				183BC6F12ED4AED400C73B5D /* Frameworks */,
+				183BC6F22ED4AED400C73B5D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				183BC6F62ED4AED400C73B5D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				183BC6F72ED4AED400C73B5D /* CommuteTimelyUITests */,
+			);
+			name = CommuteTimelyUITests;
+			packageProductDependencies = (
+			);
+			productName = CommuteTimelyUITests;
+			productReference = 183BC6F42ED4AED400C73B5D /* CommuteTimelyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		183BC6D52ED4AED100C73B5D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2610;
+				LastUpgradeCheck = 2610;
+				TargetAttributes = {
+					183BC6DC2ED4AED100C73B5D = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					183BC6E92ED4AED400C73B5D = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 183BC6DC2ED4AED100C73B5D;
+					};
+					183BC6F32ED4AED400C73B5D = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 183BC6DC2ED4AED100C73B5D;
+					};
+				};
+			};
+			buildConfigurationList = 183BC6D82ED4AED100C73B5D /* Build configuration list for PBXProject "CommuteTimely" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 183BC6D42ED4AED100C73B5D;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				183BC7922ED4C1B200C73B5D /* XCRemoteSwiftPackageReference "Alamofire" */,
+				1845C6B62ED615EA00768CEB /* XCRemoteSwiftPackageReference "clerk-ios" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 183BC6DE2ED4AED100C73B5D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				183BC6DC2ED4AED100C73B5D /* CommuteTimely */,
+				183BC6E92ED4AED400C73B5D /* CommuteTimelyTests */,
+				183BC6F32ED4AED400C73B5D /* CommuteTimelyUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		183BC6DB2ED4AED100C73B5D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		183BC6E82ED4AED400C73B5D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		183BC6F22ED4AED400C73B5D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		183BC6D92ED4AED100C73B5D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		183BC6E62ED4AED400C73B5D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		183BC6F02ED4AED400C73B5D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		183BC6EC2ED4AED400C73B5D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 183BC6DC2ED4AED100C73B5D /* CommuteTimely */;
+			targetProxy = 183BC6EB2ED4AED400C73B5D /* PBXContainerItemProxy */;
+		};
+		183BC6F62ED4AED400C73B5D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 183BC6DC2ED4AED100C73B5D /* CommuteTimely */;
+			targetProxy = 183BC6F52ED4AED400C73B5D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		183BC6FC2ED4AED400C73B5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7WC359GKBV;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		183BC6FD2ED4AED400C73B5D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 7WC359GKBV;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		183BC6FF2ED4AED400C73B5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = CommuteTimely/CommuteTimely/CommuteTimely.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7WC359GKBV;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLName = \"com.googleusercontent.apps.1013982656069\";\n    CFBundleURLSchemes =     (\n        \"com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99\"\n    );\n}";
+				INFOPLIST_KEY_GOOGLE_CLIENT_ID = "1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99.apps.googleusercontent.com";
+				INFOPLIST_KEY_GOOGLE_REVERSED_CLIENT_ID = "com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "CommuteTimely monitors traffic conditions in the background to send you timely notifications about when to leave. This ensures you arrive on time even when the app isn't open.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CommuteTimely needs your location to calculate accurate travel times and provide timely departure notifications for your saved destinations.";
+				INFOPLIST_KEY_NSUserNotificationUsageDescription = "CommuteTimely uses notifications to nudge you when it's time to head out based on live traffic and weather.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "fetch location processing remote-notification";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.umer.CommuteTimely;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		183BC7002ED4AED400C73B5D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = CommuteTimely/CommuteTimely/CommuteTimely.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7WC359GKBV;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleURLName = \"com.googleusercontent.apps.1013982656069\";\n    CFBundleURLSchemes =     (\n        \"com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99\"\n    );\n}";
+				INFOPLIST_KEY_GOOGLE_CLIENT_ID = "1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99.apps.googleusercontent.com";
+				INFOPLIST_KEY_GOOGLE_REVERSED_CLIENT_ID = "com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "CommuteTimely monitors traffic conditions in the background to send you timely notifications about when to leave. This ensures you arrive on time even when the app isn't open.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CommuteTimely needs your location to calculate accurate travel times and provide timely departure notifications for your saved destinations.";
+				INFOPLIST_KEY_NSUserNotificationUsageDescription = "CommuteTimely sends proactive reminders so you can leave with enough buffer to arrive on time.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "fetch location processing remote-notification";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.umer.CommuteTimely;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		183BC7022ED4AED400C73B5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7WC359GKBV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.umer.CommuteTimelyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CommuteTimely.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CommuteTimely";
+			};
+			name = Debug;
+		};
+		183BC7032ED4AED400C73B5D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7WC359GKBV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.umer.CommuteTimelyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CommuteTimely.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CommuteTimely";
+			};
+			name = Release;
+		};
+		183BC7052ED4AED400C73B5D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7WC359GKBV;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.umer.CommuteTimelyUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = CommuteTimely;
+			};
+			name = Debug;
+		};
+		183BC7062ED4AED400C73B5D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7WC359GKBV;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.umer.CommuteTimelyUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = CommuteTimely;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		183BC6D82ED4AED100C73B5D /* Build configuration list for PBXProject "CommuteTimely" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				183BC6FC2ED4AED400C73B5D /* Debug */,
+				183BC6FD2ED4AED400C73B5D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		183BC6FE2ED4AED400C73B5D /* Build configuration list for PBXNativeTarget "CommuteTimely" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				183BC6FF2ED4AED400C73B5D /* Debug */,
+				183BC7002ED4AED400C73B5D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		183BC7012ED4AED400C73B5D /* Build configuration list for PBXNativeTarget "CommuteTimelyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				183BC7022ED4AED400C73B5D /* Debug */,
+				183BC7032ED4AED400C73B5D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		183BC7042ED4AED400C73B5D /* Build configuration list for PBXNativeTarget "CommuteTimelyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				183BC7052ED4AED400C73B5D /* Debug */,
+				183BC7062ED4AED400C73B5D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		183BC7922ED4C1B200C73B5D /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+		1845C6B62ED615EA00768CEB /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/clerk/clerk-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.70.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		183BC7932ED4C1B200C73B5D /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 183BC7922ED4C1B200C73B5D /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		1845C6B72ED615EA00768CEB /* Clerk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1845C6B62ED615EA00768CEB /* XCRemoteSwiftPackageReference "clerk-ios" */;
+			productName = Clerk;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 183BC6D52ED4AED100C73B5D /* Project object */;
+}

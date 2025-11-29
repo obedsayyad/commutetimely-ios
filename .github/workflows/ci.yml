@@ -1,0 +1,53 @@
+name: CommuteTimely CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-and-test:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.1.app
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Resolve Packages
+        run: swift package resolve
+
+      - name: Bootstrap Secrets
+        run: |
+          cp ios/Resources/Secrets.template.xcconfig ios/Resources/Secrets.xcconfig
+          echo "MAPBOX_ACCESS_TOKEN = ${{ secrets.MAPBOX_ACCESS_TOKEN || 'test_token' }}" >> ios/Resources/Secrets.xcconfig
+          echo "WEATHERBIT_API_KEY = ${{ secrets.WEATHERBIT_API_KEY || 'test_key' }}" >> ios/Resources/Secrets.xcconfig
+
+      - name: Run SwiftLint
+        run: |
+          if [ -f config/.swiftlint.yml ]; then
+            brew install swiftlint || true
+            swiftlint --config config/.swiftlint.yml
+          fi
+
+      - name: Build & Test
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project ios/CommuteTimely.xcodeproj \
+            -scheme CommuteTimely \
+            -destination 'platform=iOS Simulator,name=iPhone 14' \
+            test | xcpretty
+

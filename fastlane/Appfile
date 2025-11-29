@@ -1,0 +1,16 @@
+# Appfile for CommuteTimely
+# Configure your Apple Developer account
+
+app_identifier("com.commutetimely.app") # The bundle identifier of your app
+apple_id(ENV["APPLE_ID"] || "your_apple_id@example.com") # Your Apple ID email address
+
+# Team ID from Apple Developer Portal
+# Find at: https://developer.apple.com/account/#!/membership/
+team_id(ENV["TEAM_ID"] || "YOUR_TEAM_ID")
+
+# App Store Connect Team ID (if different from Developer Portal)
+itc_team_id(ENV["ITC_TEAM_ID"] || "YOUR_ITC_TEAM_ID")
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile
+

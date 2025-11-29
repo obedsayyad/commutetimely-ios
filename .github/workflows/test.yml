@@ -1,0 +1,78 @@
+name: iOS Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app
+    
+    - name: Show Xcode version
+      run: xcodebuild -version
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Python dependencies
+      run: |
+        cd server
+        pip install -r requirements.txt
+    
+    - name: Start Flask server
+      run: |
+        cd server
+        python app.py &
+        sleep 5
+        curl -f http://localhost:5000/health || exit 1
+      env:
+        JWT_SECRET: test-secret-key
+    
+    - name: Cache SPM packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Developer/Xcode/DerivedData/*/SourcePackages
+        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-spm-
+    
+    - name: Run Unit Tests
+      run: |
+        xcodebuild test \
+          -project ios/CommuteTimely.xcodeproj \
+          -scheme CommuteTimely \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+          -only-testing:CommuteTimelyTests \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          | xcpretty
+    
+    - name: Run UI Tests
+      run: |
+        xcodebuild test \
+          -project ios/CommuteTimely.xcodeproj \
+          -scheme CommuteTimely \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
+          -only-testing:CommuteTimelyUITests \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          | xcpretty
+      continue-on-error: true
+    
+    - name: Stop Flask server
+      if: always()
+      run: pkill -f "python app.py" || true
+

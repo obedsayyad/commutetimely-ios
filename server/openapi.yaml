@@ -1,0 +1,288 @@
+openapi: 3.0.3
+info:
+  title: CommuteTimely Prediction API
+  description: |
+    REST API for predicting optimal leave times based on traffic, weather, and ML models.
+    This API helps users arrive on time by calculating when they should depart.
+  version: 1.0.0
+  contact:
+    name: CommuteTimely Support
+    email: support@commutetimely.app
+
+servers:
+  - url: http://localhost:5000
+    description: Development server
+  - url: https://api.commutetimely.app
+    description: Production server
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the API server
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /predict:
+    post:
+      summary: Predict leave time
+      description: |
+        Calculate the recommended leave time to arrive at a destination on time.
+        Considers real-time traffic, weather conditions, and historical patterns.
+      operationId: predictLeaveTime
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictionRequest'
+      responses:
+        '200':
+          description: Successful prediction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionResponse'
+        '400':
+          description: Bad request - invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-11-24T10:30:00Z'
+        service:
+          type: string
+          example: CommuteTimely Prediction API
+        version:
+          type: string
+          example: 1.0.0
+
+    PredictionRequest:
+      type: object
+      required:
+        - origin
+        - destination
+        - arrival_time
+        - route_features
+        - weather_features
+      properties:
+        origin:
+          $ref: '#/components/schemas/Coordinate'
+        destination:
+          $ref: '#/components/schemas/Coordinate'
+        arrival_time:
+          type: string
+          format: date-time
+          description: Desired arrival time (ISO 8601 with timezone)
+          example: '2024-11-24T09:00:00Z'
+        current_time:
+          type: string
+          format: date-time
+          description: Current time (ISO 8601 with timezone)
+          example: '2024-11-24T08:00:00Z'
+        route_features:
+          $ref: '#/components/schemas/RouteFeatures'
+        weather_features:
+          $ref: '#/components/schemas/WeatherFeatures'
+        user_features:
+          $ref: '#/components/schemas/UserFeatures'
+
+    Coordinate:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 37.7749
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: -122.4194
+
+    RouteFeatures:
+      type: object
+      required:
+        - distance
+        - baseline_duration
+        - current_traffic_delay
+        - incident_count
+        - congestion_level
+      properties:
+        distance:
+          type: number
+          format: double
+          description: Route distance in meters
+          example: 15000.0
+        baseline_duration:
+          type: number
+          format: double
+          description: Normal travel time in seconds (no traffic)
+          example: 1200.0
+        current_traffic_delay:
+          type: number
+          format: double
+          description: Current traffic delay in seconds
+          example: 180.0
+        incident_count:
+          type: integer
+          description: Number of traffic incidents on route
+          example: 1
+        congestion_level:
+          type: integer
+          minimum: 0
+          maximum: 4
+          description: Traffic congestion level (0=none, 4=severe)
+          example: 2
+
+    WeatherFeatures:
+      type: object
+      required:
+        - temperature
+        - precipitation
+        - precipitation_probability
+        - wind_speed
+        - visibility
+        - weather_score
+      properties:
+        temperature:
+          type: number
+          format: double
+          description: Temperature in Celsius
+          example: 22.0
+        precipitation:
+          type: number
+          format: double
+          description: Current precipitation in mm
+          example: 0.0
+        precipitation_probability:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          description: Probability of precipitation (%)
+          example: 20.0
+        wind_speed:
+          type: number
+          format: double
+          description: Wind speed in m/s
+          example: 5.5
+        visibility:
+          type: number
+          format: double
+          description: Visibility in km
+          example: 10.0
+        weather_score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          description: Overall weather quality score
+          example: 85.0
+
+    UserFeatures:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: Hashed user identifier
+          example: abc123xyz
+        historical_variance:
+          type: number
+          format: double
+          description: User's historical travel time variance
+          example: 0.15
+        preferred_buffer:
+          type: integer
+          description: User's preferred buffer time in minutes
+          example: 15
+
+    PredictionResponse:
+      type: object
+      properties:
+        leave_time:
+          type: string
+          format: date-time
+          description: Recommended leave time
+          example: '2024-11-24T08:35:00Z'
+        confidence:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Prediction confidence score
+          example: 0.85
+        explanation:
+          type: string
+          description: Human-readable explanation of the prediction
+          example: '25 min travel, moderate traffic, 10 min buffer'
+        alternative_leaves_times:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlternativeLeaveTime'
+        buffer_minutes:
+          type: integer
+          description: Buffer time included in minutes
+          example: 10
+        calculated_at:
+          type: string
+          format: date-time
+          description: Timestamp when prediction was calculated
+          example: '2024-11-24T08:00:00Z'
+
+    AlternativeLeaveTime:
+      type: object
+      properties:
+        leave_time:
+          type: string
+          format: date-time
+          example: '2024-11-24T08:25:00Z'
+        arrival_probability:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Probability of on-time arrival
+          example: 0.95
+        description:
+          type: string
+          example: 'Extra safe: arrive 10 minutes early'
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Missing required field: route_features
+
