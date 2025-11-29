@@ -326,8 +326,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **GitHub Issues**: [Create an issue](https://github.com/your-username/CommuteTimely/issues)
-- **Email**: support@commutetimely.app
+- **GitHub Issues**: [Create an issue](https://github.com/your-username/CommuteTimely-ios/issues)
+- **Email**: hellot@commutetimely.com
 - **Documentation**: See `Documentation/` folder
 
 ## 🗺️ Roadmap
