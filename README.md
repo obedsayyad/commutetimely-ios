@@ -2,7 +2,7 @@
 
 > Never miss your arrival time with AI-powered leave-time predictions
 
-[![CI](https://github.com/your-username/CommuteTimely/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/CommuteTimely/actions/workflows/ci.yml)
+[![CI](https://github.com/callmeumair/CommuteTimely-ios/actions/workflows/ci.yml/badge.svg)](https://github.com/callmeumair/CommuteTimely-ios/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
 [![iOS](https://img.shields.io/badge/iOS-16.0+-blue.svg)](https://developer.apple.com/ios/)
@@ -18,7 +18,7 @@ CommuteTimely is a production-ready iOS app that tells users **exactly when to l
 - **📊 Analytics Dashboard** - Track your commute patterns and arrival accuracy
 - **💎 Premium Subscriptions** - Unlimited trips with RevenueCat integration
 - **🌙 Dynamic Island** - Live commute updates directly in the Dynamic Island (iOS 16+)
-- **🔐 Secure Authentication** - Sign in with Apple, Google, or email via Clerk
+- **🔐 Secure Authentication** - Sign in with Apple, Google, or email via Supabase
 
 ## 🏗️ Architecture
 
@@ -101,8 +101,8 @@ CommuteTimely/
 
 1. **Mapbox** - Get from https://account.mapbox.com/access-tokens/
 2. **Weatherbit** - Get from https://www.weatherbit.io/account/dashboard
-3. **Clerk** - Get from https://clerk.com/ (for authentication)
-4. **RevenueCat** (Optional) - Get from https://app.revenuecat.com/
+3. **Supabase** - Get from https://app.supabase.com/ (for authentication)
+4. **RevenueCat** - Get from https://app.revenuecat.com/ (for subscriptions)
 5. **Mixpanel** (Optional) - Get from https://mixpanel.com/
 
 ## 🚀 Quick Start
@@ -116,6 +116,23 @@ cd CommuteTimely
 
 ### 2. Configure API Keys
 
+#### Option A: Using AppSecrets.swift (Recommended for Supabase & RevenueCat)
+
+Edit `ios/CommuteTimely/Config/AppSecrets.swift` and replace the placeholder values:
+
+```swift
+struct AppSecrets {
+    // MARK: - Supabase Configuration
+    static let supabaseURL = "https://your-project-id.supabase.co"
+    static let supabaseAnonKey = "your_supabase_anon_key_here"
+    
+    // MARK: - RevenueCat Configuration
+    static let revenueCatPublicAPIKey = "your_revenuecat_public_key_here"
+}
+```
+
+#### Option B: Using Secrets.xcconfig (For other API keys)
+
 Copy the template and add your keys:
 
 ```bash
@@ -127,11 +144,15 @@ Edit `ios/Resources/Secrets.xcconfig` and replace placeholders:
 ```properties
 MAPBOX_ACCESS_TOKEN = your_actual_mapbox_token_here
 WEATHERBIT_API_KEY = your_actual_weatherbit_key_here
-CLERK_PUBLISHABLE_KEY = your_clerk_publishable_key_here
-REVENUECAT_API_KEY = your_revenuecat_key_here
 MIXPANEL_TOKEN = your_mixpanel_token_here
 PREDICTION_SERVER_URL = http://localhost:5000
 ```
+
+⚠️ **Security Note**: API keys and secrets are managed in `ios/CommuteTimely/Config/AppSecrets.swift`. Replace placeholder keys with your real keys before deploying to production.
+
+For detailed setup instructions, see:
+- [Authentication Setup](Documentation/Authentication.md) - Supabase configuration
+- [Subscription Setup](Documentation/Settings.md) - RevenueCat configuration
 
 ### 3. Install Dependencies
 
@@ -320,13 +341,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Mapbox** for mapping and routing services
 - **Weatherbit** for weather data
-- **Clerk** for authentication and subscription management
+- **Clerk** for authentication
+- **RevenueCat** for subscription management
 - **Apple** for CoreML and native frameworks
 
 ## 📞 Support
 
-- **GitHub Issues**: [Create an issue](https://github.com/your-username/CommuteTimely-ios/issues)
-- **Email**: hellot@commutetimely.com
+- **GitHub Issues**: [Create an issue](https://github.com/your-username/CommuteTimely/issues)
+- **Email**: support@commutetimely.app
 - **Documentation**: See `Documentation/` folder
 
 ## 🗺️ Roadmap
@@ -343,4 +365,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Built with ❤️ using SwiftUI**
 
 Version: 1.0.0  
-Last Updated: November 2025
+Last Updated: November 2024

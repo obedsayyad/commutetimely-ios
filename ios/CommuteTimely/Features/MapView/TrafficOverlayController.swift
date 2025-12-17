@@ -8,6 +8,7 @@
 import Foundation
 import MapKit
 import Combine
+import OSLog
 
 @MainActor
 final class TrafficOverlayState: ObservableObject {
@@ -50,7 +51,15 @@ final class TrafficOverlayController {
         self.mapView = mapView
         guard overlay == nil else { return }
         
-        let overlay = MapboxTrafficTileOverlay(accessToken: AppConfiguration.mapboxAccessToken)
+        // Only attach overlay if Mapbox access token is available
+        guard let accessToken = AppConfiguration.mapboxAccessToken else {
+            // Log warning but don't crash - map will work without traffic overlay
+            let logger = Logger(subsystem: "com.commutetimely.map", category: "TrafficOverlay")
+            logger.warning("Mapbox access token is missing. Traffic overlay will not be displayed.")
+            return
+        }
+        
+        let overlay = MapboxTrafficTileOverlay(accessToken: accessToken)
         overlay.minimumZ = 3
         overlay.maximumZ = 17
         overlay.canReplaceMapContent = false

@@ -2,14 +2,12 @@
 // AuthSessionController.swift
 // CommuteTimely
 //
-// Lightweight bridge between the app and Clerk authentication.
+// Lightweight bridge between the app and Supabase authentication.
 //
 
 import Foundation
 import Combine
-#if canImport(Clerk)
-import Clerk
-#endif
+import OSLog
 
 // MARK: - Models
 
@@ -59,71 +57,10 @@ class AuthSessionController: ObservableObject {
     }
 }
 
-#if canImport(Clerk)
-// MARK: - Clerk Adapter
+// MARK: - Mock Provider (for testing)
 
 @MainActor
-final class ClerkAuthController: AuthSessionController {
-    private let clerk: Clerk
-    private var authEventsTask: Task<Void, Never>?
-    
-    init(clerk: Clerk = .shared) {
-        self.clerk = clerk
-        super.init()
-        refreshFromClerk()
-        observeAuthEvents()
-    }
-    
-    @MainActor
-    deinit {
-        // Task cancellation is safe from deinit
-        authEventsTask?.cancel()
-    }
-    
-    override func idToken(template: String? = nil) async throws -> String? {
-        guard let session = clerk.session else { return nil }
-        let token = try await session.getToken(.init(template: template))
-        return token?.jwt
-    }
-    
-    override func signOut() async throws {
-        try await clerk.signOut()
-        refreshFromClerk()
-    }
-    
-    func reloadCachedSession() {
-        refreshFromClerk()
-    }
-    
-    private func observeAuthEvents() {
-        authEventsTask = Task { [weak self] in
-            guard let self else { return }
-            for await event in clerk.authEventEmitter.events {
-                switch event {
-                case .signInCompleted, .signUpCompleted:
-                    refreshFromClerk()
-                case .signedOut:
-                    updateUser(nil)
-                }
-            }
-        }
-    }
-    
-    private func refreshFromClerk() {
-        guard let user = clerk.user else {
-            updateUser(nil)
-            return
-        }
-        let profile = AuthenticatedUser(user: user)
-        updateUser(profile)
-    }
-}
-#endif
-
-// MARK: - Mock Provider
-
-@MainActor
-final class ClerkMockProvider: AuthSessionController {
+final class SupabaseMockAuthController: AuthSessionController {
     private var tokenValue: String
     
     init(initialUser: AuthenticatedUser? = nil, token: String = "mock-token") {
@@ -159,24 +96,4 @@ final class ClerkMockProvider: AuthSessionController {
         tokenValue = token
     }
 }
-
-// MARK: - Helpers
-
-#if canImport(Clerk)
-private extension AuthenticatedUser {
-    init(user: User) {
-        self.id = user.id
-        self.email = user.primaryEmailAddress?.emailAddress ?? user.emailAddresses.first?.emailAddress
-        self.firstName = user.firstName
-        if let firstName = user.firstName, let lastName = user.lastName {
-            self.displayName = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
-        } else if let firstName = user.firstName ?? user.username {
-            self.displayName = firstName
-        } else {
-            self.displayName = user.emailAddresses.first?.emailAddress
-        }
-        self.imageURL = URL(string: user.imageUrl)
-    }
-}
-#endif
 

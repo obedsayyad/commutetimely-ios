@@ -7,7 +7,6 @@
 
 import SwiftUI
 import Combine
-import Clerk
 
 struct OnboardingCoordinatorView: View {
     @EnvironmentObject var appCoordinator: AppCoordinator

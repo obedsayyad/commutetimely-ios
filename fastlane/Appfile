@@ -1,7 +1,7 @@
 # Appfile for CommuteTimely
 # Configure your Apple Developer account
 
-app_identifier("com.commutetimely.app") # The bundle identifier of your app
+app_identifier("com.develentcorp.CommuteTimely") # The bundle identifier of your app
 apple_id(ENV["APPLE_ID"] || "your_apple_id@example.com") # Your Apple ID email address
 
 # Team ID from Apple Developer Portal

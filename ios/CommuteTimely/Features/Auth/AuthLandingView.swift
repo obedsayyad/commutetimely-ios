@@ -2,42 +2,29 @@
 // AuthLandingView.swift
 // CommuteTimely
 //
-// Clerk-powered authentication landing screen
+// Supabase-powered authentication landing screen
 //
 
 import SwiftUI
 import Foundation
 import Combine
-#if canImport(Clerk)
-import Clerk
-#endif
+import AuthenticationServices
 
 struct AuthLandingView: View {
     @ObservedObject var authManager: AuthSessionController
     @Environment(\.dismiss) private var dismiss
-    #if canImport(Clerk)
-    @Environment(\.clerk) private var clerk
-    #endif
-    @State private var showingClerkAuth = false
+    @StateObject private var viewModel: AuthViewModel
+    
     @State private var showingPrivacyNotice = false
-    @State private var isPreparingClerk = false
-    @State private var clerkErrorMessage: String?
-    @State private var showingClerkError = false
+    @State private var authMode: AuthMode = .signIn
+    @State private var showingMagicLinkSent = false
     
-    private var isMockAuth: Bool {
-        authManager is ClerkMockProvider
-    }
-    
-    private var supportsClerkUI: Bool {
-        #if canImport(Clerk)
-        if #available(iOS 17.0, *) {
-            return true
-        } else {
-            return false
-        }
-        #else
-        return false
-        #endif
+    init(authManager: AuthSessionController) {
+        self.authManager = authManager
+        _viewModel = StateObject(wrappedValue: AuthViewModel(
+            authService: DIContainer.shared.supabaseAuthService,
+            authManager: authManager
+        ))
     }
     
     var body: some View {
@@ -48,8 +35,8 @@ struct AuthLandingView: View {
                 ScrollView {
                     VStack(spacing: DesignTokens.Spacing.xl) {
                         header
-                        benefits
-                        signInSection
+                        authForm
+                        socialAuthSection
                         privacyButton
                         skipButton
                     }
@@ -66,30 +53,32 @@ struct AuthLandingView: View {
                     }
                 }
             }
-            #if canImport(Clerk)
-            .fullScreenCover(isPresented: $showingClerkAuth) {
-                ClerkAuthFullScreen {
-                    showingClerkAuth = false
-                }
-            }
-            #endif
             .sheet(isPresented: $showingPrivacyNotice) {
                 AuthPrivacyNoticeView()
+            }
+            .alert("Magic Link Sent", isPresented: $showingMagicLinkSent) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Check your email for a sign-in link. Click the link to complete sign-in.")
+            }
+            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+                Button("OK", role: .cancel) {
+                    viewModel.errorMessage = nil
+                }
+            } message: {
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                }
             }
             .onChange(of: authManager.isAuthenticated) { _, newValue in
                 if newValue {
                     dismiss()
                 }
             }
-            .alert("Unable to reach Clerk", isPresented: $showingClerkError) {
-                Button("Retry") {
-                    Task {
-                        await prepareClerkIfNeeded()
-                    }
+            .onChange(of: viewModel.showingMagicLinkSent) { _, newValue in
+                if newValue {
+                    showingMagicLinkSent = true
                 }
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(clerkErrorMessage ?? "Please check your network connection and try again.")
             }
         }
     }
@@ -105,7 +94,7 @@ struct AuthLandingView: View {
                 .font(DesignTokens.Typography.title1)
                 .foregroundColor(DesignTokens.Colors.textPrimary)
             
-            Text("Sign in with Clerk to sync across devices. Your commute data stays private and local.")
+            Text("Sign in to sync across devices. Your commute data stays private and secure.")
                 .font(DesignTokens.Typography.body)
                 .foregroundColor(DesignTokens.Colors.textSecondary)
                 .multilineTextAlignment(.center)
@@ -114,36 +103,126 @@ struct AuthLandingView: View {
         .padding(.top, DesignTokens.Spacing.xxl)
     }
     
-    private var benefits: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-            BenefitRow(icon: "icloud.fill", text: "Automatic backup to iCloud")
-            BenefitRow(icon: "arrow.triangle.2.circlepath", text: "Sync trips across all your devices")
-            BenefitRow(icon: "brain.head.profile", text: "Personalized commute predictions")
-            BenefitRow(icon: "lock.fill", text: "Clerk manages secure sign-in and tokens")
-        }
-        .padding(.horizontal, DesignTokens.Spacing.lg)
-    }
-    
-    private var signInSection: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
-            CTButton(
-                isPreparingClerk ? "Preparing Clerk…" : "Sign in with Clerk",
-                style: .primary,
-                isLoading: isPreparingClerk
-            ) {
-                presentClerkFlow()
+    private var authForm: some View {
+        VStack(spacing: DesignTokens.Spacing.lg) {
+            // Mode toggle
+            Picker("Auth Mode", selection: $authMode) {
+                Text("Sign In").tag(AuthMode.signIn)
+                Text("Sign Up").tag(AuthMode.signUp)
             }
-            .accessibilityIdentifier("clerk-sign-in")
+            .pickerStyle(.segmented)
             .padding(.horizontal, DesignTokens.Spacing.lg)
             
-            if isMockAuth, let mockProvider = authManager as? ClerkMockProvider {
-                Button("Complete mock sign-in") {
-                    mockProvider.completeMockSignIn()
-                }
-                .font(DesignTokens.Typography.callout)
-                .foregroundColor(DesignTokens.Colors.primary)
-                .accessibilityIdentifier("mock-sign-in")
+            // Email field
+            CTTextField(
+                placeholder: "Email",
+                text: $viewModel.email,
+                icon: "envelope.fill",
+                keyboardType: .emailAddress
+            )
+            .padding(.horizontal, DesignTokens.Spacing.lg)
+            
+            // Password field (only for sign in/sign up, not magic link)
+            if authMode != .magicLink {
+                CTSecureTextField(
+                    placeholder: "Password",
+                    text: $viewModel.password
+                )
+                .padding(.horizontal, DesignTokens.Spacing.lg)
             }
+            
+            // Primary action button
+            CTButton(
+                authMode.buttonTitle,
+                style: .primary,
+                isLoading: viewModel.isLoading
+            ) {
+                Task {
+                    await performAuthAction()
+                }
+            }
+            .padding(.horizontal, DesignTokens.Spacing.lg)
+            
+            // Magic link toggle
+            if authMode != .magicLink {
+                Button {
+                    withAnimation {
+                        authMode = .magicLink
+                    }
+                } label: {
+                    Text("Use magic link instead")
+                        .font(DesignTokens.Typography.callout)
+                        .foregroundColor(DesignTokens.Colors.primary)
+                }
+            } else {
+                Button {
+                    withAnimation {
+                        authMode = .signIn
+                    }
+                } label: {
+                    Text("Use password instead")
+                        .font(DesignTokens.Typography.callout)
+                        .foregroundColor(DesignTokens.Colors.primary)
+                }
+            }
+        }
+    }
+    
+    private var socialAuthSection: some View {
+        VStack(spacing: DesignTokens.Spacing.md) {
+            // Divider
+            HStack {
+                Rectangle()
+                    .fill(DesignTokens.Colors.textSecondary.opacity(0.3))
+                    .frame(height: 1)
+                Text("OR")
+                    .font(DesignTokens.Typography.caption)
+                    .foregroundColor(DesignTokens.Colors.textSecondary)
+                    .padding(.horizontal, DesignTokens.Spacing.md)
+                Rectangle()
+                    .fill(DesignTokens.Colors.textSecondary.opacity(0.3))
+                    .frame(height: 1)
+            }
+            .padding(.horizontal, DesignTokens.Spacing.lg)
+            
+            // Apple Sign-In
+            SignInWithAppleButton(
+                onRequest: { request in
+                    request.requestedScopes = [.fullName, .email]
+                    // Generate nonce for this request
+                    let nonce = viewModel.generateNonce()
+                    request.nonce = viewModel.sha256(nonce)
+                    // Store nonce for later use
+                    viewModel.setStoredNonce(nonce)
+                },
+                onCompletion: { result in
+                    Task {
+                        if let nonce = viewModel.getStoredNonce() {
+                            await viewModel.handleAppleAuthorizationResult(result, nonce: nonce)
+                        } else {
+                            viewModel.errorMessage = "Sign-in failed: missing nonce"
+                        }
+                    }
+                }
+            )
+            .signInWithAppleButtonStyle(.black)
+            .frame(height: DesignTokens.Size.buttonHeight)
+            .cornerRadius(DesignTokens.CornerRadius.md)
+            .padding(.horizontal, DesignTokens.Spacing.lg)
+            .disabled(viewModel.isLoading)
+            
+            // Google Sign-In
+            CTButton(
+                "Continue with Google",
+                style: .secondary,
+                isLoading: false
+            ) {
+                Task {
+                    await viewModel.signInWithGoogle()
+                }
+            }
+            .padding(.horizontal, DesignTokens.Spacing.lg)
+            .disabled(viewModel.isLoading)
         }
     }
     
@@ -168,123 +247,39 @@ struct AuthLandingView: View {
                 .foregroundColor(DesignTokens.Colors.textSecondary)
         }
     }
-
-    private func presentClerkFlow() {
-        guard !isPreparingClerk else { return }
-
-        if isMockAuth {
-            #if canImport(Clerk)
-            if supportsClerkUI {
-                showingClerkAuth = true
-            }
-            #endif
-            return
-        }
-
-        guard supportsClerkUI else {
-            clerkErrorMessage = "Sign-in with Clerk requires iOS 17 or later on this device. You can keep using CommuteTimely without signing in."
-            showingClerkError = true
-            return
-        }
-        
-        Task {
-            await prepareClerkIfNeeded()
-        }
-    }
-
-    #if canImport(Clerk)
-    @MainActor
-    private func prepareClerkIfNeeded() async {
-        isPreparingClerk = true
-        clerkErrorMessage = nil
-        defer { isPreparingClerk = false }
-
-        do {
-            if !clerk.isLoaded {
-                try await clerk.load()
-            }
-
-            if let clerkAuth = authManager as? ClerkAuthController {
-                clerkAuth.reloadCachedSession()
-            }
-
-            showingClerkAuth = true
-        } catch {
-            clerkErrorMessage = formatErrorMessage(error)
-            showingClerkError = true
-        }
-    }
-    #else
-    @MainActor
-    private func prepareClerkIfNeeded() async {
-        clerkErrorMessage = "Clerk sign-in is not available on this OS version."
-        showingClerkError = true
-    }
-    #endif
     
-    private func formatErrorMessage(_ error: Error) -> String {
-        let errorDescription = error.localizedDescription
-        
-        // Check for NSURLErrorDomain errors
-        if let urlError = error as? URLError {
-            switch urlError.code {
-            case .notConnectedToInternet, .networkConnectionLost:
-                return "No internet connection. Please check your network settings and try again."
-            case .timedOut:
-                return "Connection timed out. Please check your internet connection and try again."
-            case .cannotFindHost, .cannotConnectToHost:
-                return "Unable to connect to Clerk. Please check your internet connection and try again."
-            case .dnsLookupFailed:
-                return "Network error. Please check your internet connection and try again."
-            default:
-                return "Network error. Please check your internet connection and try again."
-            }
+    // MARK: - Actions
+    
+    private func performAuthAction() async {
+        switch authMode {
+        case .signIn:
+            await viewModel.signIn()
+        case .signUp:
+            await viewModel.signUp()
+        case .magicLink:
+            await viewModel.sendMagicLink()
         }
-        
-        // Filter out technical error codes from the message
-        if errorDescription.contains("NSURLErrorDomain") {
-            if errorDescription.contains("-1000") {
-                return "Unable to connect to Clerk. Please check your internet connection and try again."
-            }
-            if errorDescription.contains("-1001") {
-                return "Connection timed out. Please check your internet connection and try again."
-            }
-            if errorDescription.contains("-1009") {
-                return "No internet connection. Please check your network settings and try again."
-            }
-            // Generic network error message
-            return "Network error. Please check your internet connection and try again."
-        }
-        
-        // For other errors, return a user-friendly message
-        // Remove technical error codes if present
-        var message = errorDescription
-        
-        // Remove patterns like "(NSURLErrorDomain error -1000.)"
-        let patterns = [
-            "\\(NSURLErrorDomain error -?\\d+\\.?\\)",
-            "\\(.*error.*-?\\d+.*\\)",
-            "NSURLErrorDomain",
-            "error -\\d+"
-        ]
-        
-        for pattern in patterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                let range = NSRange(message.startIndex..., in: message)
-                message = regex.stringByReplacingMatches(in: message, options: [], range: range, withTemplate: "")
-            }
-        }
-        
-        message = message.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // If message is empty or too technical, provide a default
-        if message.isEmpty || message.contains("NSURLErrorDomain") || message.contains("error -") {
-            return "Unable to connect to Clerk. Please check your internet connection and try again."
-        }
-        
-        return message
     }
+    
+}
 
+// MARK: - Auth Mode
+
+enum AuthMode {
+    case signIn
+    case signUp
+    case magicLink
+    
+    var buttonTitle: String {
+        switch self {
+        case .signIn:
+            return "Sign In"
+        case .signUp:
+            return "Sign Up"
+        case .magicLink:
+            return "Send Magic Link"
+        }
+    }
 }
 
 // MARK: - Benefit Row
@@ -312,34 +307,5 @@ struct BenefitRow: View {
 // MARK: - Preview
 
 #Preview {
-    AuthLandingView(authManager: ClerkMockProvider())
+    AuthLandingView(authManager: SupabaseMockAuthController())
 }
-
-
-#if canImport(Clerk)
-// MARK: - Clerk Auth Full Screen
-
-private struct ClerkAuthFullScreen: View {
-    @Environment(\.dismiss) private var dismiss
-    let onClose: () -> Void
-
-    var body: some View {
-        NavigationView {
-            AuthView()
-                .accessibilityLabel("Clerk Sign In")
-                .navigationTitle("Sign in")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Close") {
-                            onClose()
-                            dismiss()
-                        }
-                    }
-                }
-        }
-        .navigationViewStyle(.stack)
-        .ignoresSafeArea()
-    }
-}
-#endif

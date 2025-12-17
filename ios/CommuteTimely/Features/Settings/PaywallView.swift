@@ -200,8 +200,8 @@ class PaywallViewModel: ObservableObject {
     
     // Product IDs - should match App Store Connect
     private let productIds = [
-        "com.umer.CommuteTimely.premium.monthly",
-        "com.umer.CommuteTimely.premium.yearly"
+        "com.develentcorp.CommuteTimely.premium.monthly",
+        "com.develentcorp.CommuteTimely.premium.yearly"
     ]
     
     init(subscriptionService: SubscriptionServiceProtocol, analyticsService: AnalyticsServiceProtocol) {

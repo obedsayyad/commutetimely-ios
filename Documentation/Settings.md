@@ -63,7 +63,7 @@ class SettingsViewModel: BaseViewModel {
 
 #### Sign In / Sign Out
 
-- **Sign In**: Opens Clerk authentication
+- **Sign In**: Opens Supabase authentication
 - **Sign Out**: Signs out and cancels personalized notifications
 - **User Info**: Displays user name and email (if signed in)
 
@@ -82,6 +82,69 @@ class SettingsViewModel: BaseViewModel {
 - Advanced predictions
 - Cloud sync
 - Dynamic Island
+
+#### RevenueCat Configuration
+
+RevenueCat is configured in `CommuteTimelyApp.init()` using keys from `AppSecrets.swift`:
+
+```swift
+// Configure RevenueCat
+Purchases.configure(withAPIKey: AppSecrets.revenueCatPublicAPIKey)
+```
+
+##### Setting Up RevenueCat
+
+1. **Create Products in App Store Connect**
+   - Create in-app purchase subscriptions (monthly, yearly, etc.)
+   - Note down the product IDs
+
+2. **Configure RevenueCat Dashboard**
+   - Add your app in RevenueCat
+   - Link to App Store Connect
+   - Create entitlements (e.g., "premium")
+   - Map products to entitlements
+
+3. **Update AppSecrets.swift**
+   - Replace `revenueCatPublicAPIKey` with your actual public API key from RevenueCat Dashboard
+
+4. **Product IDs in PaywallView**
+   - Update product IDs in `PaywallViewModel` to match your App Store Connect products:
+     ```swift
+     private let productIds = [
+         "com.develentcorp.CommuteTimely.premium.monthly",
+         "com.develentcorp.CommuteTimely.premium.yearly"
+     ]
+     ```
+
+##### Subscription Service Integration
+
+The subscription service is powered by RevenueCat and StoreKit 2:
+
+```swift
+lazy var subscriptionService: SubscriptionServiceProtocol = {
+    SubscriptionService(authManager: authManager)
+}()
+```
+
+Features:
+- **Purchase**: Handle in-app purchases through RevenueCat
+- **Restore**: Restore previous purchases
+- **Entitlements**: Check premium access via entitlement checks
+- **Status**: Real-time subscription status updates
+
+##### Connecting Auth to Subscriptions
+
+RevenueCat tracks users by connecting to Supabase user IDs:
+
+```swift
+// When user signs in
+Purchases.shared.logIn(supabaseUserID)
+
+// When user signs out
+Purchases.shared.logOut()
+```
+
+This ensures subscription status syncs across devices for the same user.
 
 ### 5. About
 

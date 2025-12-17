@@ -7,7 +7,7 @@ Thank you for your interest in contributing to CommuteTimely! This document prov
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/your-username/CommuteTimely.git
+   git clone https://github.com/callmeumair/CommuteTimely-ios.git
    cd CommuteTimely
    ```
 3. **Create a branch** for your changes:

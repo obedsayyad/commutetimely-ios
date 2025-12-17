@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Clerk
+import RevenueCat
 
 struct ProfileAuthView: View {
     @ObservedObject var authManager: AuthSessionController
@@ -38,7 +38,10 @@ struct ProfileAuthView: View {
                     Button("Cancel", role: .cancel) {}
                     Button("Sign Out", role: .destructive) {
                         Task {
-                            try? await authManager.signOut()
+                            // Sign out from Supabase
+                            _ = try? await authManager.signOut()
+                            // Sign out from RevenueCat (handled in RootView, but ensure it happens)
+                            _ = try? await Purchases.shared.logOut()
                         }
                     }
                 } message: {
@@ -55,8 +58,24 @@ struct ProfileAuthView: View {
     
     private func userHeader(for user: AuthenticatedUser) -> some View {
         HStack(spacing: DesignTokens.Spacing.md) {
-            UserButton()
-                .frame(width: 48, height: 48)
+            // User avatar
+            Group {
+                if let imageURL = user.imageURL {
+                    AsyncImage(url: imageURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Image(systemName: "person.crop.circle.fill")
+                            .foregroundColor(DesignTokens.Colors.textSecondary)
+                    }
+                } else {
+                    Image(systemName: "person.crop.circle.fill")
+                        .foregroundColor(DesignTokens.Colors.textSecondary)
+                }
+            }
+            .frame(width: 48, height: 48)
+            .clipShape(Circle())
             
             VStack(alignment: .leading, spacing: 2) {
                 if let displayName = user.displayName {
@@ -97,7 +116,7 @@ struct ProfileAuthView: View {
 }
 
 #Preview {
-    let mock = ClerkMockProvider()
+    let mock = SupabaseMockAuthController()
     mock.completeMockSignIn()
     return ProfileAuthView(authManager: mock)
 }

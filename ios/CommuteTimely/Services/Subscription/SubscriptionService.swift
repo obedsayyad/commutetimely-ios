@@ -2,13 +2,12 @@
 // SubscriptionService.swift
 // CommuteTimely
 //
-// StoreKit 2-based subscription service with Clerk integration
+// RevenueCat-based subscription service with Supabase integration
 //
 
 import Foundation
 import Combine
-import StoreKit
-import Clerk
+import RevenueCat
 
 protocol SubscriptionServiceProtocol {
     var subscriptionStatus: AnyPublisher<SubscriptionStatus, Never> { get }
@@ -23,10 +22,10 @@ protocol SubscriptionServiceProtocol {
 @MainActor
 class SubscriptionService: NSObject, SubscriptionServiceProtocol {
     private let authManager: AuthSessionController
-    private let entitlementIdentifier = "CommuteTimely Pro"
+    private let entitlementIdentifier = "premium"
     
     private let subscriptionStatusSubject = CurrentValueSubject<SubscriptionStatus, Never>(SubscriptionStatus())
-    private var updateListenerTask: Task<Void, Error>?
+    private var customerInfoListenerTask: Task<Void, Never>?
     
     var subscriptionStatus: AnyPublisher<SubscriptionStatus, Never> {
         subscriptionStatusSubject.eraseToAnyPublisher()
@@ -38,46 +37,55 @@ class SubscriptionService: NSObject, SubscriptionServiceProtocol {
     }
     
     func configure() {
-        // Start listening for transaction updates
-        updateListenerTask = listenForTransactions()
+        // Sync RevenueCat user ID with Supabase auth
+        Task {
+            await syncRevenueCatUser()
+        }
         
         // Load initial subscription status
         Task {
             await refreshSubscriptionStatus()
         }
+        
+        // Listen for customer info updates
+        customerInfoListenerTask = Task { [weak self] in
+            await self?.listenForCustomerInfoUpdates()
+        }
     }
     
     func purchase(productId: String) async throws {
-        guard let product = try? await Product.products(for: [productId]).first else {
-            throw SubscriptionError.productNotFound
-        }
-        
         do {
-            let result = try await product.purchase()
+            guard let package = try await getPackage(for: productId) else {
+                throw SubscriptionError.productNotFound
+            }
             
-            switch result {
-            case .success(let verification):
-                let transaction = try Self.checkVerified(verification)
-                await transaction.finish()
-                await refreshSubscriptionStatus()
-            case .userCancelled:
-                throw SubscriptionError.purchaseCancelled
-            case .pending:
-                throw SubscriptionError.paymentPending
-            @unknown default:
-                throw SubscriptionError.purchaseFailed(NSError(domain: "SubscriptionService", code: -1))
-            }
+            let (_, customerInfo, _) = try await Purchases.shared.purchase(package: package)
+            
+            // Update subscription status from customer info
+            await updateStatusFromCustomerInfo(customerInfo)
         } catch {
-            if error is SubscriptionError {
-                throw error
+            if let rcError = error as? ErrorCode {
+                switch rcError {
+                case .purchaseCancelledError:
+                    throw SubscriptionError.purchaseCancelled
+                case .paymentPendingError:
+                    throw SubscriptionError.paymentPending
+                default:
+                    throw SubscriptionError.purchaseFailed(error)
+                }
+            } else {
+                throw SubscriptionError.purchaseFailed(error)
             }
-            throw SubscriptionError.purchaseFailed(error)
         }
     }
     
     func restorePurchases() async throws {
-        try await AppStore.sync()
-        await refreshSubscriptionStatus()
+        do {
+            let customerInfo = try await Purchases.shared.restorePurchases()
+            await updateStatusFromCustomerInfo(customerInfo)
+        } catch {
+            throw SubscriptionError.restoreFailed(error)
+        }
     }
     
     func checkEntitlement(_ identifier: String) async -> Bool {
@@ -86,82 +94,71 @@ class SubscriptionService: NSObject, SubscriptionServiceProtocol {
     }
     
     func refreshSubscriptionStatus() async {
-        var status = SubscriptionStatus()
-        
-        // Check StoreKit subscriptions
-        for await result in Transaction.currentEntitlements {
+        do {
+            let customerInfo = try await Purchases.shared.customerInfo()
+            await updateStatusFromCustomerInfo(customerInfo)
+        } catch {
+            print("[SubscriptionService] Failed to refresh subscription status: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Private Helpers
+    
+    private func syncRevenueCatUser() async {
+        // Link RevenueCat user ID with Supabase auth user ID
+        if let userId = authManager.currentUser?.id {
             do {
-                let transaction = try Self.checkVerified(result)
-                
-                // Check if this is our premium product
-                if transaction.productID.contains("premium") || transaction.productID.contains("pro") {
-                    status.isSubscribed = true
-                    status.subscriptionTier = .premium
-                    status.expirationDate = transaction.expirationDate
-                    
-                    // Check if in trial period
-                    if let expirationDate = transaction.expirationDate,
-                       expirationDate > Date() {
-                        let daysUntilExpiration = Calendar.current.dateComponents([.day], from: Date(), to: expirationDate).day ?? 0
-                        status.isTrialing = daysUntilExpiration <= 7
-                    }
-                    break
-                }
+                let (_, _) = try await Purchases.shared.logIn(userId)
+                print("[SubscriptionService] RevenueCat logged in with user ID: \(userId)")
             } catch {
-                continue
+                print("[SubscriptionService] Failed to log in RevenueCat: \(error.localizedDescription)")
+            }
+        } else {
+            // Log out RevenueCat if user is signed out
+            do {
+                let _ = try await Purchases.shared.logOut()
+                print("[SubscriptionService] RevenueCat logged out")
+            } catch {
+                print("[SubscriptionService] Failed to log out RevenueCat: \(error.localizedDescription)")
             }
         }
+    }
+    
+    private func getPackage(for productId: String) async throws -> Package? {
+        let offerings = try await Purchases.shared.offerings()
+        return offerings.current?.availablePackages.first { $0.storeProduct.productIdentifier == productId }
+    }
+    
+    private func updateStatusFromCustomerInfo(_ customerInfo: CustomerInfo) async {
+        var status = SubscriptionStatus()
         
-        // Also check Clerk user metadata for subscription status
-        if let clerkUser = Clerk.shared.user,
-           let subscriptionData = clerkUser.publicMetadata?["subscription"] as? [String: Any] {
-            if let isSubscribed = subscriptionData["isSubscribed"] as? Bool, isSubscribed {
-                status.isSubscribed = true
-                if let tierString = subscriptionData["tier"] as? String,
-                   let tier = SubscriptionTier(rawValue: tierString) {
-                    status.subscriptionTier = tier
-                }
-                if let expirationTimestamp = subscriptionData["expirationDate"] as? TimeInterval {
-                    status.expirationDate = Date(timeIntervalSince1970: expirationTimestamp)
-                }
-            }
+        // Check premium entitlement
+        if let entitlement = customerInfo.entitlements[entitlementIdentifier],
+           entitlement.isActive {
+            status.isSubscribed = true
+            status.subscriptionTier = .premium
+            status.expirationDate = entitlement.expirationDate
+            status.isTrialing = entitlement.periodType == .trial
         }
         
         subscriptionStatusSubject.send(status)
         
         // Log subscription status update
         if status.isSubscribed {
-            print("[SubscriptionService] Subscription status updated: Active")
+            print("[SubscriptionService] Subscription status updated: Active (\(status.subscriptionTier.rawValue))")
+        } else {
+            print("[SubscriptionService] Subscription status updated: Not subscribed")
         }
     }
     
-    // MARK: - Private Helpers
-    
-    private func listenForTransactions() -> Task<Void, Error> {
-        return Task.detached { [weak self] in
-            for await result in Transaction.updates {
-                do {
-                    let transaction = try Self.checkVerified(result)
-                    await transaction.finish()
-                    await self?.refreshSubscriptionStatus()
-                } catch {
-                    continue
-                }
-            }
-        }
-    }
-    
-    private static nonisolated func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
-        switch result {
-        case .unverified:
-            throw SubscriptionError.verificationFailed
-        case .verified(let safe):
-            return safe
+    private func listenForCustomerInfoUpdates() async {
+        for await customerInfo in Purchases.shared.customerInfoStream {
+            await updateStatusFromCustomerInfo(customerInfo)
         }
     }
     
     deinit {
-        updateListenerTask?.cancel()
+        customerInfoListenerTask?.cancel()
     }
 }
 

@@ -7,7 +7,6 @@
 
 import SwiftUI
 import CoreLocation
-import Clerk
 
 struct LocationPermissionView: View {
     @ObservedObject var viewModel: OnboardingViewModel
@@ -160,7 +159,7 @@ struct OnboardingProgressView: View {
 }
 
 #Preview {
-    let mockAuth = ClerkMockProvider()
+    let mockAuth = SupabaseMockAuthController()
     LocationPermissionView(
         viewModel: OnboardingViewModel(
             locationService: MockLocationService(),

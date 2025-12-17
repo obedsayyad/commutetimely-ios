@@ -7,37 +7,84 @@
 
 import Foundation
 import StoreKit
+import OSLog
+
+// MARK: - Configuration Error
+
+enum AppConfigurationError: LocalizedError {
+    case missingKey(String)
+    case invalidValue(String, String)
+    case sourceUnavailable(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .missingKey(let key):
+            return "Configuration key '\(key)' not found in any source"
+        case .invalidValue(let key, let value):
+            return "Configuration key '\(key)' has invalid value: '\(value)'"
+        case .sourceUnavailable(let source):
+            return "Configuration source unavailable: \(source)"
+        }
+    }
+}
 
 enum AppConfiguration {
     
+    // MARK: - Logging
+    
+    private static let logger = Logger(subsystem: "com.commutetimely.configuration", category: "AppConfiguration")
+    
+    // Track which source provided each key for debugging
+    private static var configurationSource: [String: ConfigurationSource] = [:]
+    
+    private enum ConfigurationSource: String {
+        case environment = "ProcessInfo.environment"
+        case infoPlist = "Bundle.main.infoDictionary"
+        case bundledJSON = "Bundled JSON config"
+    }
+    
     // MARK: - API Keys
     
-    static var mapboxAccessToken: String {
+    static var mapboxAccessToken: String? {
         value(for: "MAPBOX_ACCESS_TOKEN")
     }
     
-    static var weatherbitAPIKey: String {
+    static var weatherbitAPIKey: String? {
         value(for: "WEATHERBIT_API_KEY")
     }
     
-    static var mixpanelToken: String {
+    static var mixpanelToken: String? {
         value(for: "MIXPANEL_TOKEN")
     }
     
-    static var predictionServerURL: String {
+    static var predictionServerURL: String? {
         value(for: "PREDICTION_SERVER_URL")
     }
     
-    static var authServerURL: String {
+    static var authServerURL: String? {
         value(for: "AUTH_SERVER_URL")
     }
     
-    static var clerkPublishableKey: String {
-        value(for: "CLERK_PUBLISHABLE_KEY")
+    // MARK: - Supabase Configuration (from AppSecrets)
+    
+    /// Supabase project URL
+    /// Configured via AppSecrets.swift
+    static var supabaseURL: String {
+        AppSecrets.supabaseURL
     }
     
-    static var clerkFrontendAPI: String {
-        value(for: "CLERK_FRONTEND_API")
+    /// Supabase anonymous (public) key
+    /// Configured via AppSecrets.swift
+    static var supabaseAnonKey: String {
+        AppSecrets.supabaseAnonKey
+    }
+    
+    // MARK: - RevenueCat Configuration (from AppSecrets)
+    
+    /// RevenueCat public API key
+    /// Configured via AppSecrets.swift
+    static var revenueCatAPIKey: String {
+        AppSecrets.revenueCatPublicAPIKey
     }
     
     // MARK: - Environment Detection
@@ -62,18 +109,6 @@ enum AppConfiguration {
         !isDebug && !isTestFlight
     }
     
-    static var useClerkMock: Bool {
-        if let envValue = ProcessInfo.processInfo.environment["COMMUTETIMELY_USE_CLERK_MOCK"] {
-            if let explicit = Bool(envValue) {
-                return explicit
-            }
-            if truthyStrings.contains(envValue.lowercased()) {
-                return true
-            }
-        }
-        return boolValue(for: "COMMUTETIMELY_USE_CLERK_MOCK")
-    }
-    
     static var isPredictionVerboseLoggingEnabled: Bool {
         if let envValue = ProcessInfo.processInfo.environment["COMMUTETIMELY_PREDICTION_VERBOSE"] {
             return truthyStrings.contains(envValue.lowercased())
@@ -92,22 +127,47 @@ enum AppConfiguration {
     }
     
     static var bundleIdentifier: String {
-        Bundle.main.bundleIdentifier ?? "com.commutetimely.app"
+        Bundle.main.bundleIdentifier ?? "com.develentcorp.CommuteTimely"
     }
     
     // MARK: - Private Helper
     
-    private static func value(for key: String) -> String {
-        guard let value = Bundle.main.infoDictionary?[key] as? String,
-              !value.isEmpty,
-              !value.contains("YOUR_") else {
-            if isDebug {
-                print("⚠️ Missing configuration value for key: \(key)")
-                return "missing_\(key.lowercased())"
-            }
-            fatalError("Missing required configuration value for key: \(key)")
+    /// Safely retrieves a configuration value from multiple sources.
+    /// Checks sources in order: ProcessInfo.environment → Bundle.main.infoDictionary
+    /// Returns nil if key is not found or value is invalid (empty or placeholder).
+    /// Never crashes - logs errors instead.
+    private static func value(for key: String) -> String? {
+        // Check ProcessInfo.environment first (highest priority - runtime override)
+        if let envValue = ProcessInfo.processInfo.environment[key],
+           !envValue.isEmpty,
+           !envValue.contains("YOUR_") {
+            configurationSource[key] = .environment
+            logger.info("Configuration key '\(key)' loaded from environment")
+            return envValue
         }
-        return value
+        
+        // Check Bundle.main.infoDictionary (build-time configuration)
+        if let plistValue = Bundle.main.infoDictionary?[key] as? String,
+           !plistValue.isEmpty,
+           !plistValue.contains("YOUR_") {
+            configurationSource[key] = .infoPlist
+            logger.info("Configuration key '\(key)' loaded from Info.plist")
+            return plistValue
+        }
+        
+        // Key not found or invalid value
+        let error = AppConfigurationError.missingKey(key)
+        logger.error("\(error.localizedDescription)")
+        
+        // In debug builds, provide more context
+        if isDebug {
+            logger.debug("Available environment keys: \(ProcessInfo.processInfo.environment.keys.sorted().joined(separator: ", "))")
+            if let infoDict = Bundle.main.infoDictionary {
+                logger.debug("Available Info.plist keys: \(infoDict.keys.sorted().joined(separator: ", "))")
+            }
+        }
+        
+        return nil
     }
     
     private static func boolValue(for key: String, default defaultValue: Bool = false) -> Bool {
@@ -124,6 +184,43 @@ enum AppConfiguration {
     }
     
     private static let truthyStrings: Set<String> = ["1", "true", "yes"]
+    
+    // MARK: - Configuration Status Logging
+    
+    /// Logs the status of all configuration keys, including which source provided each value.
+    /// Call this during app initialization for debugging.
+    static func logConfigurationStatus() {
+        let keys = [
+            "MAPBOX_ACCESS_TOKEN",
+            "WEATHERBIT_API_KEY",
+            "MIXPANEL_TOKEN",
+            "PREDICTION_SERVER_URL",
+            "AUTH_SERVER_URL"
+        ]
+        
+        logger.info("=== Configuration Status ===")
+        
+        logger.info("Bundle ID: \(bundleIdentifier)")
+        
+        for key in keys {
+            if let value = value(for: key) {
+                let source = configurationSource[key]?.rawValue ?? "unknown"
+                // Log first few characters only for security
+                let maskedValue = String(value.prefix(8)) + (value.count > 8 ? "..." : "")
+                logger.info("✓ \(key): loaded from \(source) (value: \(maskedValue))")
+            } else {
+                logger.error("✗ \(key): MISSING")
+            }
+        }
+        
+        // Log Supabase and RevenueCat configuration from AppSecrets
+        let supabaseURLMasked = String(supabaseURL.prefix(30)) + "..."
+        logger.info("✓ SUPABASE_URL: configured via AppSecrets (value: \(supabaseURLMasked))")
+        logger.info("✓ SUPABASE_ANON_KEY: configured via AppSecrets (present)")
+        logger.info("✓ REVENUECAT_API_KEY: configured via AppSecrets (present)")
+        
+        logger.info("=== End Configuration Status ===")
+    }
 }
 
 // MARK: - TestFlight Detection Helpers

@@ -12,13 +12,13 @@ import UserNotifications
 @MainActor
 final class PersonalizedNotificationSchedulerTests: XCTestCase {
     var scheduler: PersonalizedNotificationScheduler!
-    var mockAuthManager: ClerkMockProvider!
+    var mockAuthManager: SupabaseMockAuthController!
     var mockPreferencesService: MockUserPreferencesService!
     var mockNotificationService: MockNotificationService!
     
     override func setUp() {
         super.setUp()
-        mockAuthManager = ClerkMockProvider()
+        mockAuthManager = SupabaseMockAuthController()
         mockPreferencesService = MockUserPreferencesService()
         mockNotificationService = MockNotificationService()
         

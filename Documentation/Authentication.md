@@ -1,36 +1,82 @@
 # Authentication
 
-CommuteTimely uses Clerk for user authentication, providing secure sign-in, user management, and session handling.
+CommuteTimely uses Supabase for user authentication, providing secure sign-in, user management, and session handling. RevenueCat is used for subscription management and premium feature access.
 
 ## Overview
 
-Clerk is a complete authentication solution that handles:
-- User sign-up and sign-in
-- Session management
-- Token generation and refresh
+The authentication system consists of two main components:
+
+### Supabase Authentication
+- User sign-up and sign-in (email/password, magic link)
+- OAuth providers (Apple, Google)
+- Session management and token refresh
 - User profile management
-- Multi-provider authentication (future)
+- Row Level Security (RLS) for data access
 
-## Clerk Configuration
+### RevenueCat Subscriptions
+- Subscription purchase and restoration
+- Entitlement management
+- Premium feature gating
+- Cross-platform subscription sync
 
-### Setup
+## Configuration
 
-Clerk is configured in `CommuteTimelyApp.init()`:
+### Supabase Setup
+
+1. Create a Supabase project at https://app.supabase.com
+2. Get your project URL and anon key from Project Settings → API
+3. Update `ios/CommuteTimely/Config/AppSecrets.swift`:
+   - Replace `supabaseURL` with your project URL (e.g., `https://your-project-id.supabase.co`)
+   - Replace `supabaseAnonKey` with your anon/public key
+
+### RevenueCat Setup
+
+1. Create a RevenueCat project at https://app.revenuecat.com
+2. Get your public API key from Projects → [Your App] → API Keys
+3. Update `ios/CommuteTimely/Config/AppSecrets.swift`:
+   - Replace `revenueCatPublicAPIKey` with your public SDK key
+
+### AppSecrets.swift
+
+All authentication and subscription keys are centralized in `ios/CommuteTimely/Config/AppSecrets.swift`:
 
 ```swift
-private func configureClerkIfNeeded() {
-    guard !AppConfiguration.useClerkMock else {
-        return // Skip configuration in mock mode
-    }
+struct AppSecrets {
+    // MARK: - Supabase Configuration
+    static let supabaseURL = "https://dvvmlhfyabbfcvrohjip.supabase.co"
+    static let supabaseAnonKey = "eyJhbGci..."
     
-    clerk.configure(publishableKey: AppConfiguration.clerkPublishableKey)
+    // MARK: - RevenueCat Configuration
+    static let revenueCatPublicAPIKey = "test_dTYrdOBLnXSzoCGrKGqHwaQQYXk"
 }
 ```
 
-### Configuration Values
+### Security Best Practices
 
-- **Publishable Key**: Stored in `Secrets.xcconfig` as `CLERK_PUBLISHABLE_KEY`
-- **Mock Mode**: Set via `COMMUTETIMELY_USE_CLERK_MOCK=true` environment variable
+- The `AppSecrets.swift` file contains placeholder keys safe for development
+- Replace placeholder keys before release builds
+- Never commit production keys to version control
+- Consider using environment variables or CI/CD secrets for production builds
+- The Supabase anon key is designed to be public and protected by Row Level Security (RLS)
+- The RevenueCat public key is safe to embed in the app binary
+
+### Configuration in App Entry
+
+Both SDKs are initialized in `CommuteTimelyApp.init()`:
+
+```swift
+// Initialize Supabase client
+let supabaseClient = SupabaseClient(
+    supabaseURL: URL(string: AppSecrets.supabaseURL)!,
+    supabaseKey: AppSecrets.supabaseAnonKey
+)
+
+// Configure Supabase in DIContainer
+serviceContainer.configureSupabase(client: supabaseClient)
+
+// Configure RevenueCat
+Purchases.configure(withAPIKey: AppSecrets.revenueCatPublicAPIKey)
+```
 
 ## Auth Session Controller
 

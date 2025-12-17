@@ -7,7 +7,6 @@
 
 import SwiftUI
 import UserNotifications
-import Clerk
 
 struct NotificationPermissionView: View {
     @ObservedObject var viewModel: OnboardingViewModel
@@ -132,7 +131,7 @@ struct NotificationPermissionView: View {
 }
 
 #Preview {
-    let mockAuth = ClerkMockProvider()
+    let mockAuth = SupabaseMockAuthController()
     NotificationPermissionView(
         viewModel: OnboardingViewModel(
             locationService: MockLocationService(),

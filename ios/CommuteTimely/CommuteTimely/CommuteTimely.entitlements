@@ -2,9 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>webcredentials:new-colt-81.clerk.accounts.dev</string>
+		<!-- Supabase auth domain for deep links and web credentials -->
+		<string>applinks:dvvmlhfyabbfcvrohjip.supabase.co</string>
+		<string>webcredentials:dvvmlhfyabbfcvrohjip.supabase.co</string>
 	</array>
 </dict>
 </plist>
