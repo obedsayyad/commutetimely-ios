@@ -1,0 +1,133 @@
+# Fastfile for CommuteTimely
+# Automation for building, testing, and deploying
+
+default_platform(:ios)
+
+platform :ios do
+  
+  desc "Run all tests"
+  lane :test do
+    run_tests(
+      scheme: "CommuteTimely",
+      devices: ["iPhone 15"],
+      code_coverage: true
+    )
+  end
+  
+  desc "Run SwiftLint"
+  lane :lint do
+    swiftlint(
+      mode: :lint,
+      config_file: ".swiftlint.yml",
+      raise_if_swiftlint_error: false
+    )
+  end
+  
+  desc "Build for development"
+  lane :dev do
+    build_app(
+      scheme: "CommuteTimely",
+      configuration: "Debug",
+      skip_codesigning: true,
+      skip_archive: true
+    )
+  end
+  
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    # Ensure we're on a clean state
+    ensure_git_status_clean
+    
+    # Increment build number
+    increment_build_number(
+      build_number: latest_testflight_build_number + 1
+    )
+    
+    # Build the app
+    build_app(
+      scheme: "CommuteTimely",
+      configuration: "Release",
+      export_method: "app-store"
+    )
+    
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      notify_external_testers: false
+    )
+    
+    # Commit version bump
+    commit_version_bump(
+      message: "Bump build for TestFlight",
+      xcodeproj: "CommuteTimely.xcodeproj"
+    )
+    
+    # Tag the release
+    add_git_tag(
+      tag: "testflight/#{get_version_number}/#{get_build_number}"
+    )
+  end
+  
+  desc "Build for App Store release"
+  lane :release do
+    # Ensure we're on main branch
+    ensure_git_branch(branch: "main")
+    ensure_git_status_clean
+    
+    # Run tests first
+    test
+    
+    # Bump version
+    increment_version_number(
+      bump_type: "patch"
+    )
+    
+    # Build
+    build_app(
+      scheme: "CommuteTimely",
+      configuration: "Release",
+      export_method: "app-store"
+    )
+    
+    # Upload to App Store
+    upload_to_app_store(
+      skip_metadata: false,
+      skip_screenshots: false,
+      force: true
+    )
+    
+    # Commit and tag
+    commit_version_bump(
+      message: "Release version #{get_version_number}",
+      xcodeproj: "CommuteTimely.xcodeproj"
+    )
+    
+    add_git_tag(
+      tag: "v#{get_version_number}"
+    )
+    
+    push_to_git_remote
+  end
+  
+  desc "Generate screenshots"
+  lane :screenshots do
+    capture_screenshots(
+      scheme: "CommuteTimelyUITests"
+    )
+  end
+  
+  desc "Update metadata and screenshots"
+  lane :update_metadata do
+    deliver(
+      skip_binary_upload: true,
+      skip_app_version_update: true
+    )
+  end
+  
+  # Error handling
+  error do |lane, exception|
+    UI.error("Error in lane #{lane}: #{exception.message}")
+  end
+  
+end
+
