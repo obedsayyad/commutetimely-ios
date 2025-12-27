@@ -12,6 +12,7 @@ struct ProfileAuthView: View {
     @ObservedObject var authManager: AuthSessionController
     @State private var showingSignOut = false
     @State private var showingUserProfile = false
+    @State private var avatarUrl: String = ""
     
     var body: some View {
         Group {
@@ -48,7 +49,16 @@ struct ProfileAuthView: View {
                     Text("Your trips will remain on this device, but won't sync until you sign in again.")
                 }
                 .sheet(isPresented: $showingUserProfile) {
-                    UserProfileView()
+                    AccountView()
+                }
+                .task {
+                    await loadAvatar()
+                }
+                .onChange(of: showingUserProfile) { _, isShowing in
+                    if !isShowing {
+                        // Refresh avatar when returning from account page
+                        Task { await loadAvatar() }
+                    }
                 }
             } else {
                 notSignedInView
@@ -56,26 +66,21 @@ struct ProfileAuthView: View {
         }
     }
     
+    private func loadAvatar() async {
+        do {
+            let profile = try await SupabaseService.shared.fetchUserProfile()
+            avatarUrl = profile.avatarUrl ?? ""
+        } catch {
+            // Ignore errors - just use placeholder
+        }
+    }
+    
     private func userHeader(for user: AuthenticatedUser) -> some View {
         HStack(spacing: DesignTokens.Spacing.md) {
-            // User avatar
-            Group {
-                if let imageURL = user.imageURL {
-                    AsyncImage(url: imageURL) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Image(systemName: "person.crop.circle.fill")
-                            .foregroundColor(DesignTokens.Colors.textSecondary)
-                    }
-                } else {
-                    Image(systemName: "person.crop.circle.fill")
-                        .foregroundColor(DesignTokens.Colors.textSecondary)
-                }
-            }
-            .frame(width: 48, height: 48)
-            .clipShape(Circle())
+            // User avatar from Supabase
+            profileImage
+                .frame(width: 48, height: 48)
+                .clipShape(Circle())
             
             VStack(alignment: .leading, spacing: 2) {
                 if let displayName = user.displayName {
@@ -93,6 +98,34 @@ struct ProfileAuthView: View {
             
             Spacer()
         }
+    }
+    
+    @ViewBuilder
+    private var profileImage: some View {
+        if !avatarUrl.isEmpty, let url = URL(string: avatarUrl) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                case .failure(_):
+                    placeholderImage
+                case .empty:
+                    ProgressView()
+                @unknown default:
+                    placeholderImage
+                }
+            }
+        } else {
+            placeholderImage
+        }
+    }
+    
+    private var placeholderImage: some View {
+        Image(systemName: "person.crop.circle.fill")
+            .resizable()
+            .foregroundColor(DesignTokens.Colors.textSecondary)
     }
     
     private var notSignedInView: some View {
@@ -120,4 +153,3 @@ struct ProfileAuthView: View {
     mock.completeMockSignIn()
     return ProfileAuthView(authManager: mock)
 }
-

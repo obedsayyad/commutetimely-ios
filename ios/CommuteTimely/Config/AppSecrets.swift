@@ -43,5 +43,5 @@ struct AppSecrets {
     /// RevenueCat public API key (SDK Key)
     /// Get from: RevenueCat Dashboard → Projects → [Your App] → API Keys
     /// Format: Starts with "appl_" for production or test prefix for sandbox
-    static let revenueCatPublicAPIKey = "test_dTYrdOBLnXSzoCGrKGqHwaQQYXk"
+    static let revenueCatPublicAPIKey = "appl_iIcgitABeWzvYRBGwflcjuTEZvx"
 }

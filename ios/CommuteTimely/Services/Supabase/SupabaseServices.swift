@@ -19,6 +19,50 @@ struct UserProfile: Codable, Equatable, Identifiable {
     var avatarURL: URL?
     var createdAt: Date?
     var updatedAt: Date?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case name
+        case email
+        case avatarURL = "avatar_url"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+    
+    init(id: UUID, userId: UUID, name: String? = nil, email: String? = nil, avatarURL: URL? = nil, createdAt: Date? = nil, updatedAt: Date? = nil) {
+        self.id = id
+        self.userId = userId
+        self.name = name
+        self.email = email
+        self.avatarURL = avatarURL
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        userId = try container.decode(UUID.self, forKey: .userId)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        avatarURL = try container.decodeIfPresent(URL.self, forKey: .avatarURL)
+        // These fields may not exist in the database - decode gracefully
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(userId, forKey: .userId)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(email, forKey: .email)
+        try container.encodeIfPresent(avatarURL, forKey: .avatarURL)
+        // Only encode timestamps if they exist
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
+    }
 }
 
 struct DestinationRecord: Codable, Equatable, Identifiable {

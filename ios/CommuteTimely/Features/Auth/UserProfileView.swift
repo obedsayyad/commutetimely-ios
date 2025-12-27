@@ -96,10 +96,12 @@ struct UserProfileView: View {
                                     .aspectRatio(contentMode: .fill)
                             } placeholder: {
                                 Image(systemName: "person.crop.circle.fill")
+                                    .font(.system(size: 80))
                                     .foregroundColor(DesignTokens.Colors.textSecondary)
                             }
                         } else {
                             Image(systemName: "person.crop.circle.fill")
+                                .font(.system(size: 80))
                                 .foregroundColor(DesignTokens.Colors.textSecondary)
                         }
                     }
@@ -140,23 +142,6 @@ struct UserProfileView: View {
                 }
                 .padding(.top, DesignTokens.Spacing.xl)
                 .padding(.bottom, DesignTokens.Spacing.lg)
-                
-                Divider()
-                    .padding(.horizontal, DesignTokens.Spacing.md)
-                
-                // User ID section
-                VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-                    Text("User ID")
-                        .font(DesignTokens.Typography.caption)
-                        .foregroundColor(DesignTokens.Colors.textSecondary)
-                    Text(profile.userId.uuidString)
-                        .font(DesignTokens.Typography.body)
-                        .foregroundColor(DesignTokens.Colors.textPrimary)
-                        .textSelection(.enabled)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, DesignTokens.Spacing.md)
-                .padding(.vertical, DesignTokens.Spacing.sm)
             }
             .padding(.bottom, DesignTokens.Spacing.xl)
         }
@@ -190,21 +175,29 @@ struct UserProfileView: View {
         do {
             profile = try await userProfileService.fetchCurrentUserProfile()
         } catch {
-            // Profile might not exist yet - that's okay
-            // Use auth manager's current user as fallback
+            // Profile might not exist yet - that's okay for new users
+            // Create a fallback profile using the auth user data
             if let user = authManager.currentUser {
+                let authUserId = UUID(uuidString: user.id) ?? UUID()
                 profile = UserProfile(
-                    id: UUID(),
-                    userId: UUID(uuidString: user.id) ?? UUID(),
+                    id: authUserId,  // Use auth user ID as profile ID
+                    userId: authUserId,
                     name: user.displayName,
                     email: user.email,
-                    avatarURL: user.imageURL,
-                    createdAt: Date(),
-                    updatedAt: Date()
+                    avatarURL: user.imageURL
                 )
+                // Don't show error for "not found" - this is expected for new users
+                // Only show error for actual failures
+                if !error.localizedDescription.lowercased().contains("not found") &&
+                   !error.localizedDescription.lowercased().contains("no rows") {
+                    errorMessage = "Failed to load profile: \(error.localizedDescription)"
+                    showingError = true
+                }
+            } else {
+                // No auth user available - this is a real error
+                errorMessage = "Something went wrong"
+                showingError = true
             }
-            errorMessage = "Failed to load profile: \(error.localizedDescription)"
-            showingError = true
         }
         
         isLoading = false

@@ -102,9 +102,12 @@ extension AuthenticatedUser {
         self.id = user.id.uuidString
         self.email = user.email
         // userMetadata is non-optional in v2
-        self.displayName = user.userMetadata["full_name"]?.stringValue ?? user.email
+        self.displayName = user.userMetadata["full_name"]?.stringValue ?? user.userMetadata["name"]?.stringValue ?? user.email
         self.firstName = user.userMetadata["first_name"]?.stringValue ?? user.userMetadata["name"]?.stringValue
-        if let avatarURLString = user.userMetadata["avatar_url"]?.stringValue {
+        // Check multiple possible fields for avatar URL (different providers use different keys)
+        if let avatarURLString = user.userMetadata["avatar_url"]?.stringValue ?? 
+           user.userMetadata["picture"]?.stringValue ?? 
+           user.userMetadata["photo"]?.stringValue {
             self.imageURL = URL(string: avatarURLString)
         } else {
             self.imageURL = nil

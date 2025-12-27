@@ -29,10 +29,12 @@ final class UserProfileService: UserProfileServiceProtocol {
             let user = try await client.auth.user()
             let userId = user.id
             
+            // In Supabase, user_profiles typically uses 'id' as the primary key
+            // matching the auth user's id, not a separate 'user_id' column
             let response: [UserProfile] = try await client
                 .from("user_profiles")
                 .select()
-                .eq("user_id", value: userId.uuidString)
+                .eq("id", value: userId.uuidString)
                 .execute()
                 .value
             
@@ -54,20 +56,43 @@ final class UserProfileService: UserProfileServiceProtocol {
             let user = try await client.auth.user()
             let userId = user.id
             
-            var updatedProfile = profile
-            updatedProfile.userId = userId
-            updatedProfile.updatedAt = Date()
-            
-            let response: [UserProfile] = try await client
-                .from("user_profiles")
-                .upsert(updatedProfile)
-                .select()
-                .execute()
-                .value
-            
-            guard let savedProfile = response.first else {
-                throw SupabaseError.invalidResponse
+            // Create a struct with only the fields that exist in the database
+            // The table uses 'id' as the primary key (matching auth user id)
+            struct UserProfileUpsertRequest: Codable {
+                let id: UUID
+                let name: String?
+                let email: String?
+                let avatarURL: URL?
+                
+                enum CodingKeys: String, CodingKey {
+                    case id
+                    case name
+                    case email
+                    case avatarURL = "avatar_url"
+                }
             }
+            
+            let upsertRequest = UserProfileUpsertRequest(
+                id: userId,  // Use auth user id as the profile id
+                name: profile.name,
+                email: profile.email,
+                avatarURL: profile.avatarURL
+            )
+            
+            // Perform upsert without select to avoid decoding issues
+            try await client
+                .from("user_profiles")
+                .upsert(upsertRequest)
+                .execute()
+            
+            // Return updated profile directly (avoids potential decoding issues with missing columns)
+            let savedProfile = UserProfile(
+                id: userId,
+                userId: userId,
+                name: profile.name,
+                email: profile.email,
+                avatarURL: profile.avatarURL
+            )
             
             _cachedProfile = savedProfile
             return savedProfile
@@ -79,14 +104,13 @@ final class UserProfileService: UserProfileServiceProtocol {
     
     func deleteProfile() async throws {
         do {
-            // In Supabase v2, user() is an async throwing function
             let user = try await client.auth.user()
             let userId = user.id
             
             try await client
                 .from("user_profiles")
                 .delete()
-                .eq("user_id", value: userId.uuidString)
+                .eq("id", value: userId.uuidString)
                 .execute()
             
             _cachedProfile = nil

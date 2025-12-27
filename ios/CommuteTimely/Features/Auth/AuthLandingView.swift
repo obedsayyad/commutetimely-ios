@@ -211,18 +211,7 @@ struct AuthLandingView: View {
             .padding(.horizontal, DesignTokens.Spacing.lg)
             .disabled(viewModel.isLoading)
             
-            // Google Sign-In
-            CTButton(
-                "Continue with Google",
-                style: .secondary,
-                isLoading: false
-            ) {
-                Task {
-                    await viewModel.signInWithGoogle()
-                }
-            }
-            .padding(.horizontal, DesignTokens.Spacing.lg)
-            .disabled(viewModel.isLoading)
+
         }
     }
     

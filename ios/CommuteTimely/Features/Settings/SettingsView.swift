@@ -15,7 +15,7 @@ struct SettingsView: View {
     @State private var showingThemePicker = false
     @State private var showingTemperaturePicker = false
     @State private var showingDistancePicker = false
-    @State private var showingSupabaseDebug = false
+
     @ObservedObject var themeManager = DIContainer.shared.themeManager
     @ObservedObject var authManager = DIContainer.shared.authManager
     
@@ -44,10 +44,7 @@ struct SettingsView: View {
                     // About Section
                     aboutSection
                     
-                    #if DEBUG
-                    // Debug Section (only visible in DEBUG builds)
-                    debugSection
-                    #endif
+
                 }
                 .padding(.vertical, DesignTokens.Spacing.md)
             }
@@ -69,11 +66,7 @@ struct SettingsView: View {
             .sheet(isPresented: $showingDistancePicker) {
                 DistanceUnitPickerSheet(selectedUnit: $viewModel.preferences.displaySettings.distanceUnit)
             }
-            #if DEBUG
-            .sheet(isPresented: $showingSupabaseDebug) {
-                SupabaseConnectionTestView()
-            }
-            #endif
+
             .alert("Notification Permission Required", isPresented: $viewModel.showPermissionAlert) {
                 Button("Settings") {
                     if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
@@ -452,48 +445,7 @@ struct SettingsView: View {
         }
     }
     
-    #if DEBUG
-    private var debugSection: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-            Text("Developer")
-                .font(DesignTokens.Typography.headline)
-                .foregroundColor(DesignTokens.Colors.textPrimary)
-                .padding(.horizontal, DesignTokens.Spacing.md)
-            
-            CTCard(padding: DesignTokens.Spacing.md, elevation: .medium) {
-                VStack(spacing: DesignTokens.Spacing.md) {
-                    Button {
-                        showingSupabaseDebug = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "network")
-                                .foregroundColor(DesignTokens.Colors.textPrimary)
-                            Text("Supabase Connection Test")
-                                .font(DesignTokens.Typography.body)
-                                .foregroundColor(DesignTokens.Colors.textPrimary)
-                            Spacer()
-                            
-                            // Show connection status indicator
-                            Circle()
-                                .fill(DIContainer.shared.isSupabaseConfigured ? Color.green : Color.red)
-                                .frame(width: 8, height: 8)
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(DesignTokens.Colors.textSecondary)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, DesignTokens.Spacing.md)
-            
-            Text("Debug tools for development and testing")
-                .font(DesignTokens.Typography.footnote)
-                .foregroundColor(DesignTokens.Colors.textSecondary)
-                .padding(.horizontal, DesignTokens.Spacing.md)
-        }
-    }
-    #endif
+
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
