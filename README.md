@@ -365,4 +365,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Built with ❤️ using SwiftUI**
 
 Version: 1.0.0  
-Last Updated: November 2024
+Last Updated: November 2025
