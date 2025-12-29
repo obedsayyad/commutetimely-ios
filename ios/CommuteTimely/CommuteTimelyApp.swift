@@ -209,6 +209,13 @@ struct RootView: View {
                 await handleAuthStateChange(state)
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .accountDeleted)) { _ in
+            // Handle account deletion - reset app state
+            URLCache.shared.removeAllCachedResponses()
+            
+            // Navigate to onboarding/login
+            coordinator.resetOnboarding()
+        }
     }
     
     private func handleAuthStateChange(_ state: AuthSessionState) async {

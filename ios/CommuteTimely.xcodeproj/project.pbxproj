@@ -18,6 +18,8 @@
 		18B314E22EF1F000006E5563 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 18B314E12EF1F000006E5563 /* Supabase */; };
 		18B314E42EF1F010006E5563 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 18B314E32EF1F010006E5563 /* GoogleSignIn */; };
 		18B314E62EF1F010006E5563 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 18B314E52EF1F010006E5563 /* GoogleSignInSwift */; };
+		383C26CC2F02CB960016FA53 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 383C26CB2F02CB960016FA53 /* StoreKit.framework */; };
+		383C26CE2F02CE920016FA53 /* CommuteTimelyStorekit.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 383C26CD2F02CE920016FA53 /* CommuteTimelyStorekit.storekit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,6 +43,8 @@
 		183BC6DD2ED4AED100C73B5D /* CommuteTimely.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CommuteTimely.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		183BC6EA2ED4AED400C73B5D /* CommuteTimelyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommuteTimelyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		183BC6F42ED4AED400C73B5D /* CommuteTimelyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommuteTimelyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		383C26CB2F02CB960016FA53 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		383C26CD2F02CE920016FA53 /* CommuteTimelyStorekit.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = CommuteTimelyStorekit.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +73,7 @@
 				18B314D72EF1E778006E5563 /* Storage in Frameworks */,
 				18B314D32EF1E778006E5563 /* PostgREST in Frameworks */,
 				18B314D12EF1E778006E5563 /* Functions in Frameworks */,
+				383C26CC2F02CB960016FA53 /* StoreKit.framework in Frameworks */,
 				18B314DA2EF1E7A1006E5563 /* ReceiptParser in Frameworks */,
 				18B314DC2EF1E7A1006E5563 /* RevenueCat in Frameworks */,
 				18B314DE2EF1E7A1006E5563 /* RevenueCatUI in Frameworks */,
@@ -100,9 +105,11 @@
 		183BC6D42ED4AED100C73B5D = {
 			isa = PBXGroup;
 			children = (
+				383C26CD2F02CE920016FA53 /* CommuteTimelyStorekit.storekit */,
 				183BC6DF2ED4AED100C73B5D /* CommuteTimely */,
 				183BC6ED2ED4AED400C73B5D /* CommuteTimelyTests */,
 				183BC6F72ED4AED400C73B5D /* CommuteTimelyUITests */,
+				383C26CA2F02CB960016FA53 /* Frameworks */,
 				183BC6DE2ED4AED100C73B5D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -115,6 +122,14 @@
 				183BC6F42ED4AED400C73B5D /* CommuteTimelyUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		383C26CA2F02CB960016FA53 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				383C26CB2F02CB960016FA53 /* StoreKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -253,6 +268,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				383C26CE2F02CE920016FA53 /* CommuteTimelyStorekit.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

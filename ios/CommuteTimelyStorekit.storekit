@@ -1,0 +1,107 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "883D7C4B",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6752309705",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "K83SWH8YJ2",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 788713120.52168596,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21866711",
+      "localizations" : [
+
+      ],
+      "name" : "PRO",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "5.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6756892585",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Smart commute predictions, real-time stats",
+              "displayName" : "Commute Timely PRO Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.develentcorp.commutetimely.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Commute timely PRO Monthly",
+          "subscriptionGroupID" : "21866711",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "49.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6756893790",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "advanced notifications & continuous updates ",
+              "displayName" : "Commute Timely PRO Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.develentcorp.commutetimely.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Commute timely PRO Yearly",
+          "subscriptionGroupID" : "21866711",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

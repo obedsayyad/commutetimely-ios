@@ -76,11 +76,11 @@ final class SupabaseService {
         let filePath = "\(user.id.uuidString)/avatar.png"
         
         // Upload to Supabase Storage (bucket: "avatars")
-        try await client.storage
+        _ = try await client.storage
             .from("avatars")
             .upload(
-                path: filePath,
-                file: imageData,
+                filePath,
+                data: imageData,
                 options: FileOptions(
                     contentType: "image/png",
                     upsert: true
@@ -93,5 +93,35 @@ final class SupabaseService {
             .getPublicURL(path: filePath)
         
         return publicUrl.absoluteString
+    }
+    
+    // MARK: - Delete Account
+    
+    func deleteAccount() async throws {
+        let session = try await client.auth.session
+        
+        // Call Edge Function to delete everything (auth user, profile, storage)
+        // The Edge Function uses service role to delete the auth user
+        do {
+            _ = try await client.functions.invoke(
+                "delete-user",
+                options: FunctionInvokeOptions(
+                    headers: ["Authorization": "Bearer \(session.accessToken)"]
+                )
+            )
+        } catch {
+            // If Edge Function fails, try to at least delete profile and sign out
+            _ = try? await client
+                .from("user_profiles")
+                .delete()
+                .eq("id", value: session.user.id.uuidString)
+                .execute()
+            
+            try await client.auth.signOut()
+            throw error
+        }
+        
+        // Sign out locally after successful deletion
+        try await client.auth.signOut()
     }
 }
