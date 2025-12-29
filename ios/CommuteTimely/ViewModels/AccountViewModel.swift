@@ -117,4 +117,23 @@ final class AccountViewModel: ObservableObject {
             selectedPhotoItem = nil
         }
     }
+    
+    // MARK: - Delete Account
+    
+    @Published var isDeleting: Bool = false
+    @Published var accountDeleted: Bool = false
+    
+    func deleteAccount() {
+        Task {
+            isDeleting = true
+            errorMessage = nil
+            do {
+                try await SupabaseService.shared.deleteAccount()
+                accountDeleted = true
+            } catch {
+                errorMessage = "Failed to delete account: \(error.localizedDescription)"
+            }
+            isDeleting = false
+        }
+    }
 }
