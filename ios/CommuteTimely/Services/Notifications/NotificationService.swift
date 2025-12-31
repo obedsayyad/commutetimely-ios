@@ -173,20 +173,32 @@ class NotificationService: NSObject, NotificationServiceProtocol {
         
         let navigateAction = UNNotificationAction(
             identifier: "NAVIGATE_ACTION",
-            title: "Start Navigation",
+            title: "Navigate",
             options: [.foreground]
+        )
+        
+        let startTripAction = UNNotificationAction(
+            identifier: "START_TRIP_ACTION",
+            title: "🚗 Start Trip",
+            options: [.foreground]
+        )
+        
+        let notNowAction = UNNotificationAction(
+            identifier: "NOT_NOW_ACTION",
+            title: "Not Now",
+            options: [.destructive]
         )
         
         let departureCategory = UNNotificationCategory(
             identifier: "TRIP_DEPARTURE",
-            actions: [navigateAction, snoozeAction],
+            actions: [startTripAction, notNowAction, snoozeAction],
             intentIdentifiers: [],
             options: [.customDismissAction]
         )
         
         let reminderCategory = UNNotificationCategory(
             identifier: "TRIP_REMINDER",
-            actions: [],
+            actions: [navigateAction],
             intentIdentifiers: [],
             options: []
         )
@@ -226,6 +238,10 @@ extension NotificationService: UNUserNotificationCenterDelegate {
             handleSnooze(userInfo: userInfo)
         case "NAVIGATE_ACTION":
             handleNavigate(userInfo: userInfo)
+        case "START_TRIP_ACTION":
+            handleStartTrip(userInfo: userInfo)
+        case "NOT_NOW_ACTION":
+            handleNotNow(userInfo: userInfo)
         default:
             break
         }
@@ -241,7 +257,43 @@ extension NotificationService: UNUserNotificationCenterDelegate {
     private func handleNavigate(userInfo: [AnyHashable: Any]) {
         // Open navigation app
         print("[Notifications] Opening navigation")
+        guard let tripIdString = userInfo["tripId"] as? String else { return }
+        NotificationCenter.default.post(
+            name: .openNavigation,
+            object: nil,
+            userInfo: ["tripId": tripIdString]
+        )
     }
+    
+    private func handleStartTrip(userInfo: [AnyHashable: Any]) {
+        // Start live navigation mode
+        print("[Notifications] Starting trip navigation")
+        guard let tripIdString = userInfo["tripId"] as? String else { return }
+        NotificationCenter.default.post(
+            name: .startTripNavigation,
+            object: nil,
+            userInfo: ["tripId": tripIdString]
+        )
+    }
+    
+    private func handleNotNow(userInfo: [AnyHashable: Any]) {
+        // User declined to start trip
+        print("[Notifications] User declined trip")
+        guard let tripIdString = userInfo["tripId"] as? String else { return }
+        NotificationCenter.default.post(
+            name: .declinedTripNavigation,
+            object: nil,
+            userInfo: ["tripId": tripIdString]
+        )
+    }
+}
+
+// MARK: - Notification Names
+
+extension Notification.Name {
+    static let startTripNavigation = Notification.Name("startTripNavigation")
+    static let declinedTripNavigation = Notification.Name("declinedTripNavigation")
+    static let openNavigation = Notification.Name("openNavigation")
 }
 
 // MARK: - Mock Service

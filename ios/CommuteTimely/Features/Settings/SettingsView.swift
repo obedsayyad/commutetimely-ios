@@ -128,55 +128,63 @@ struct SettingsView: View {
                 .padding(.horizontal, DesignTokens.Spacing.md)
             
             CTCard(padding: DesignTokens.Spacing.md, elevation: .medium) {
-                HStack(alignment: .top, spacing: DesignTokens.Spacing.md) {
-                    VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                        HStack(spacing: DesignTokens.Spacing.xs) {
-                            Text(viewModel.subscriptionStatus.subscriptionTier.displayName)
-                                .font(DesignTokens.Typography.title3)
+                VStack(spacing: DesignTokens.Spacing.md) {
+                    HStack(alignment: .top, spacing: DesignTokens.Spacing.md) {
+                        VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                            HStack(spacing: DesignTokens.Spacing.xs) {
+                                Text(viewModel.subscriptionStatus.subscriptionTier.displayName)
+                                    .font(DesignTokens.Typography.title3)
+                                
+                                if viewModel.subscriptionStatus.isSubscribed {
+                                    Image(systemName: "checkmark.seal.fill")
+                                        .foregroundColor(DesignTokens.Colors.success)
+                                        .font(.caption)
+                                }
+                            }
                             
                             if viewModel.subscriptionStatus.isSubscribed {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .foregroundColor(DesignTokens.Colors.success)
-                                    .font(.caption)
-                            }
-                        }
-                        
-                        if viewModel.subscriptionStatus.isSubscribed {
-                            if viewModel.subscriptionStatus.isTrialing {
-                                Text("Trial active")
-                                    .font(DesignTokens.Typography.caption)
-                                    .foregroundColor(DesignTokens.Colors.info)
+                                if viewModel.subscriptionStatus.isTrialing {
+                                    Text("Trial active")
+                                        .font(DesignTokens.Typography.caption)
+                                        .foregroundColor(DesignTokens.Colors.info)
+                                } else {
+                                    Text("Active subscription")
+                                        .font(DesignTokens.Typography.caption)
+                                        .foregroundColor(DesignTokens.Colors.textSecondary)
+                                }
+                                
+                                if let expirationDate = viewModel.subscriptionStatus.expirationDate {
+                                    Text("Renews \(formatDate(expirationDate))")
+                                        .font(DesignTokens.Typography.caption)
+                                        .foregroundColor(DesignTokens.Colors.textTertiary)
+                                }
                             } else {
-                                Text("Active subscription")
+                                Text("Limited to \(viewModel.subscriptionStatus.subscriptionTier.maxTrips) trips")
                                     .font(DesignTokens.Typography.caption)
                                     .foregroundColor(DesignTokens.Colors.textSecondary)
                             }
-                            
-                            if let expirationDate = viewModel.subscriptionStatus.expirationDate {
-                                Text("Renews \(formatDate(expirationDate))")
-                                    .font(DesignTokens.Typography.caption)
-                                    .foregroundColor(DesignTokens.Colors.textTertiary)
-                            }
-                        } else {
-                            Text("Limited to \(viewModel.subscriptionStatus.subscriptionTier.maxTrips) trips")
-                                .font(DesignTokens.Typography.caption)
-                                .foregroundColor(DesignTokens.Colors.textSecondary)
                         }
-                    }
-                    
-                    Spacer()
-                    
-                    if !viewModel.subscriptionStatus.isSubscribed {
-                        CTButtonCompact("Upgrade", style: .primary) {
-                            showingPaywall = true
+                        
+                        Spacer()
+                        
+                        if !viewModel.subscriptionStatus.isSubscribed {
+                            CTButtonCompact("Upgrade", style: .primary) {
+                                // Check if user is signed in before showing paywall
+                                if authManager.isAuthenticated {
+                                    showingPaywall = true
+                                } else {
+                                    showingAuthLanding = true
+                                }
+                            }
                         }
                     }
                 }
-                
-                if viewModel.subscriptionStatus.isSubscribed {
-                    Divider()
-                        .padding(.vertical, DesignTokens.Spacing.xs)
-                    
+            }
+            .padding(.horizontal, DesignTokens.Spacing.md)
+            
+            // Restore Purchases - only shown when not subscribed
+            if !viewModel.subscriptionStatus.isSubscribed {
+                CTCard(padding: DesignTokens.Spacing.md, elevation: .medium) {
                     Button {
                         Task {
                             await viewModel.restorePurchases()
@@ -193,8 +201,8 @@ struct SettingsView: View {
                         }
                     }
                 }
+                .padding(.horizontal, DesignTokens.Spacing.md)
             }
-            .padding(.horizontal, DesignTokens.Spacing.md)
             
             if !viewModel.subscriptionStatus.isSubscribed {
                 Text("Unlock advanced predictions, alternative routes, and unlimited trips with Premium.")

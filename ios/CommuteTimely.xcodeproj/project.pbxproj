@@ -222,7 +222,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2610;
-				LastUpgradeCheck = 2610;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					183BC6DC2ED4AED100C73B5D = {
 						CreatedOnToolsVersion = 26.1.1;
@@ -385,6 +385,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -442,6 +443,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -459,11 +461,13 @@
 				DEVELOPMENT_TEAM = K83SWH8YJ2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CommuteTimely/Info.plist;
 				INFOPLIST_KEY_CFBundleURLTypes = "(\n    {\n        CFBundleURLName = \"com.googleusercontent.apps.1013982656069\";\n        CFBundleURLSchemes = (\n            \"com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99\"\n        );\n    },\n    {\n        CFBundleURLName = \"com.develentcorp.CommuteTimely\";\n        CFBundleURLSchemes = (\n            commutetimely\n        );\n    }\n)";
 				INFOPLIST_KEY_GOOGLE_CLIENT_ID = "1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99.apps.googleusercontent.com";
 				INFOPLIST_KEY_GOOGLE_REVERSED_CLIENT_ID = "com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "CommuteTimely monitors traffic conditions in the background to send you timely notifications about when to leave. This ensures you arrive on time even when the app isn't open.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CommuteTimely needs your location to calculate accurate travel times and provide timely departure notifications for your saved destinations.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSUserNotificationUsageDescription = "CommuteTimely uses notifications to nudge you when it's time to head out based on live traffic and weather.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -500,11 +504,13 @@
 				DEVELOPMENT_TEAM = K83SWH8YJ2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CommuteTimely/Info.plist;
 				INFOPLIST_KEY_CFBundleURLTypes = "(\n    {\n        CFBundleURLName = \"com.googleusercontent.apps.1013982656069\";\n        CFBundleURLSchemes = (\n            \"com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99\"\n        );\n    },\n    {\n        CFBundleURLName = \"com.develentcorp.CommuteTimely\";\n        CFBundleURLSchemes = (\n            commutetimely\n        );\n    }\n)";
 				INFOPLIST_KEY_GOOGLE_CLIENT_ID = "1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99.apps.googleusercontent.com";
 				INFOPLIST_KEY_GOOGLE_REVERSED_CLIENT_ID = "com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "CommuteTimely monitors traffic conditions in the background to send you timely notifications about when to leave. This ensures you arrive on time even when the app isn't open.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "CommuteTimely needs your location to calculate accurate travel times and provide timely departure notifications for your saved destinations.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSUserNotificationUsageDescription = "CommuteTimely sends proactive reminders so you can leave with enough buffer to arrive on time.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

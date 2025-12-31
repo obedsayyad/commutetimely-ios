@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.commutetimely.secondchance</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Don’t remove our app!</string>
+			<key>UIApplicationShortcutItemSubtitle</key>
+			<string>Give us a second chance!</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>face.smiling</string>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemType</key>
+			<string>com.commutetimely.reportbug</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Bugs or any issues?</string>
+			<key>UIApplicationShortcutItemSubtitle</key>
+			<string>Let us know here!</string>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>exclamationmark.triangle</string>
+		</dict>
+	</array>
+</dict>
+</plist>

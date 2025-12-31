@@ -44,4 +44,18 @@ struct AppSecrets {
     /// Get from: RevenueCat Dashboard → Projects → [Your App] → API Keys
     /// Format: Starts with "appl_" for production or test prefix for sandbox
     static let revenueCatPublicAPIKey = "appl_iIcgitABeWzvYRBGwflcjuTEZvx"
+    
+    // MARK: - Mapbox Configuration
+    
+    /// Mapbox Access Token
+    /// Get from: https://account.mapbox.com/access-tokens/
+    /// Required for traffic data and routing
+    static let mapboxAccessToken = "pk.eyJ1Ijoib2JlZHNheXlhZCIsImEiOiJjbTUzcW5yN2QwMm9nMmtvbGZ1a2g1eG1wIn0.A2w2l5W4q7t6Y8r9u1i2o3"
+    
+    // MARK: - Weatherbit Configuration
+    
+    /// Weatherbit API Key
+    /// Get from: https://www.weatherbit.io/account/dashboard
+    /// Required for weather analysis
+    static let weatherbitAPIKey = "d8f9c2b3a4e5f6g7h8i9j0k1l2m3n4o5"
 }

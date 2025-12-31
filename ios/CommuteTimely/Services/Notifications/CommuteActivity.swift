@@ -26,6 +26,13 @@ struct CommuteActivityAttributes: ActivityAttributes {
         var countdownMinutes: Int
         var eta: Date
         
+        // Navigation mode properties
+        var isNavigating: Bool = false
+        var distanceRemainingKm: Double = 0
+        var progressPercent: Int = 0
+        var currentSpeedKmh: Int = 0
+        var etaMinutes: Int = 0
+        
         var trafficColor: String {
             switch trafficSeverity {
             case .clear: return "green"
@@ -35,11 +42,21 @@ struct CommuteActivityAttributes: ActivityAttributes {
             case .severe: return "darkRed"
             }
         }
+        
+        var distanceDisplayText: String {
+            if distanceRemainingKm < 1 {
+                return "\(Int(distanceRemainingKm * 1000)) m"
+            } else {
+                return String(format: "%.1f km", distanceRemainingKm)
+            }
+        }
     }
     
     // Fixed non-changing properties about your activity go here!
     var tripId: String
     var destinationAddress: String
+    var destinationLatitude: Double = 0
+    var destinationLongitude: Double = 0
 }
 
 enum TrafficSeverity: String, Codable {

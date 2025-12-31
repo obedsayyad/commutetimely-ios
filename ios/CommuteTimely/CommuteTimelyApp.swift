@@ -13,6 +13,7 @@ import OSLog
 
 @main
 struct CommuteTimelyApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var coordinator: AppCoordinator
     @StateObject private var themeManager: ThemeManager
     private let services: ServiceContainer

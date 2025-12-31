@@ -18,6 +18,9 @@ struct PremiumFeatureGate: ViewModifier {
     @State private var hasAccess = false
     @State private var isCheckingAccess = true
     @State private var showingPaywall = false
+    @State private var showingAuthLanding = false
+    
+    @ObservedObject private var authManager = DIContainer.shared.authManager
     
     func body(content: Content) -> some View {
         ZStack {
@@ -34,6 +37,9 @@ struct PremiumFeatureGate: ViewModifier {
         }
         .sheet(isPresented: $showingPaywall) {
             PaywallView(analyticsService: analyticsService)
+        }
+        .sheet(isPresented: $showingAuthLanding) {
+            AuthLandingView(authManager: authManager)
         }
     }
     
@@ -53,7 +59,12 @@ struct PremiumFeatureGate: ViewModifier {
             
             Button {
                 analyticsService.trackEvent(.subscriptionStarted(tier: "feature_gate_\(featureName)"))
-                showingPaywall = true
+                // Check if user is signed in before showing paywall
+                if authManager.isAuthenticated {
+                    showingPaywall = true
+                } else {
+                    showingAuthLanding = true
+                }
             } label: {
                 HStack {
                     Image(systemName: "crown.fill")

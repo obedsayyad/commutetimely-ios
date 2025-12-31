@@ -117,6 +117,9 @@ class TripPlannerViewModel: BaseViewModel {
     @Published var weatherData: WeatherData?
     @Published var prediction: Prediction?
     
+    @Published var isSaving = false
+    private var lastSaveTime: Date = .distantPast
+    
     private let mapboxService: MapboxServiceProtocol
     private let searchService: SearchServiceProtocol
     private let weatherService: WeatherServiceProtocol
@@ -273,8 +276,23 @@ class TripPlannerViewModel: BaseViewModel {
     func saveTrip() async {
         guard let destination = selectedDestination else { return }
         
+        // Debounce: prevent duplicate saves within 2 seconds
+        let now = Date()
+        guard now.timeIntervalSince(lastSaveTime) >= 2.0 else {
+            print("[TripPlanner] Save request ignored - debounce active")
+            return
+        }
+        
+        // Prevent concurrent saves
+        guard !isSaving else {
+            print("[TripPlanner] Save request ignored - already saving")
+            return
+        }
+        
+        isSaving = true
+        lastSaveTime = now
+        
         // Check subscription limit before saving
-        await refreshSubscriptionStatus()
         let canCreate = await tripStorageService.canCreateTrip(
             isSubscribed: subscriptionStatus.isSubscribed,
             subscriptionTier: subscriptionStatus.subscriptionTier
@@ -282,9 +300,8 @@ class TripPlannerViewModel: BaseViewModel {
         
         if !canCreate {
             // Show paywall for free users who have reached daily limit
-            await MainActor.run {
-                showPaywall = true
-            }
+            isSaving = false
+            showPaywall = true
             return
         }
         
@@ -297,7 +314,12 @@ class TripPlannerViewModel: BaseViewModel {
         
         do {
             try await tripStorageService.saveTrip(trip)
-            await leaveTimeScheduler.scheduleTrip(trip)
+            
+            // Schedule in background to not block UI
+            Task.detached { [leaveTimeScheduler] in
+                await leaveTimeScheduler.scheduleTrip(trip)
+            }
+            
             analyticsService.trackEvent(.tripCreated(
                 destination: destination.displayName,
                 arrivalTime: arrivalTime
@@ -305,6 +327,8 @@ class TripPlannerViewModel: BaseViewModel {
         } catch {
             setError(error)
         }
+        
+        isSaving = false
     }
     
     func refreshSubscriptionStatus() async {

@@ -22,7 +22,7 @@ protocol SubscriptionServiceProtocol {
 @MainActor
 class SubscriptionService: NSObject, SubscriptionServiceProtocol {
     private let authManager: AuthSessionController
-    private let entitlementIdentifier = "premium"
+    private let entitlementIdentifier = "CommuteTimely Pro"
     
     private let subscriptionStatusSubject = CurrentValueSubject<SubscriptionStatus, Never>(SubscriptionStatus())
     private var customerInfoListenerTask: Task<Void, Never>?

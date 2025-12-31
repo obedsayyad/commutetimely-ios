@@ -22,6 +22,7 @@ protocol LocationServiceProtocol {
     func enableBackgroundLocationIfNeeded()
     func geocode(address: String) async throws -> [Location]
     func reverseGeocode(coordinate: CLLocationCoordinate2D) async throws -> Location
+    func getCurrentLocation() async throws -> CLLocation
 }
 
 class LocationService: NSObject, LocationServiceProtocol {
@@ -132,6 +133,35 @@ class LocationService: NSObject, LocationServiceProtocol {
             placeName: mapItem.name,
             placeType: mapPlaceType(from: mapItem.pointOfInterestCategory)
         )
+    }
+    
+    func getCurrentLocation() async throws -> CLLocation {
+        // Start updating location
+        startUpdatingLocation()
+        
+        // Wait for a location update with timeout
+        return try await withCheckedThrowingContinuation { continuation in
+            var cancellable: AnyCancellable?
+            
+            // Set a timeout
+            let timeoutWorkItem = DispatchWorkItem {
+                cancellable?.cancel()
+                continuation.resume(throwing: NSError(
+                    domain: "LocationService",
+                    code: -1,
+                    userInfo: [NSLocalizedDescriptionKey: "Location timeout"]
+                ))
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: timeoutWorkItem)
+            
+            cancellable = currentLocationSubject
+                .compactMap { $0 }
+                .first()
+                .sink { location in
+                    timeoutWorkItem.cancel()
+                    continuation.resume(returning: location)
+                }
+        }
     }
 }
 
@@ -246,6 +276,10 @@ class MockLocationService: LocationServiceProtocol {
             address: "123 Mock St, San Francisco, CA",
             placeName: "Mock Location"
         )
+    }
+    
+    func getCurrentLocation() async throws -> CLLocation {
+        return CLLocation(latitude: 37.7749, longitude: -122.4194)
     }
 }
 

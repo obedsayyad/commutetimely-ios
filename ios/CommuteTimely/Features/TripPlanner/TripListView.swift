@@ -11,6 +11,8 @@ import Combine
 struct TripListView: View {
     @StateObject private var viewModel = DIContainer.shared.makeTripListViewModel()
     @State private var showingAddTrip = false
+    @State private var tripToDelete: Trip?
+    @State private var showingDeleteConfirmation = false
     
     var body: some View {
         NavigationView {
@@ -37,6 +39,21 @@ struct TripListView: View {
             }
             .sheet(isPresented: $showingAddTrip) {
                 TripPlannerView(mode: .create)
+            }
+            .alert("Delete Trip?", isPresented: $showingDeleteConfirmation) {
+                Button("Cancel", role: .cancel) {
+                    tripToDelete = nil
+                }
+                Button("Delete", role: .destructive) {
+                    if let trip = tripToDelete {
+                        viewModel.deleteTrip(trip)
+                    }
+                    tripToDelete = nil
+                }
+            } message: {
+                if let trip = tripToDelete {
+                    Text("Are you sure you want to delete \"\(trip.customName ?? trip.destination.displayName)\"? This action cannot be undone.")
+                }
             }
         }
         .onAppear {
@@ -79,11 +96,18 @@ struct TripListView: View {
                         },
                         onTap: {
                             viewModel.selectTrip(trip)
+                        },
+                        onDelete: {
+                            tripToDelete = trip
+                            showingDeleteConfirmation = true
                         }
                     )
                 }
             }
             .padding(DesignTokens.Spacing.md)
+        }
+        .sheet(item: $viewModel.selectedTrip) { trip in
+            TripPlannerView(mode: .edit(trip))
         }
     }
 }
