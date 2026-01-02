@@ -17,10 +17,13 @@ protocol CommuteActivityManagerProtocol {
     func endAllActivities() async
     func isActivityActive(for tripId: UUID) async -> Bool
     func areActivitiesEnabled() async -> Bool
+    func startNavigationMode(for tripId: UUID, currentLocation: Coordinate) async
+    func updateNavigationProgress(for tripId: UUID, currentLocation: Coordinate, distanceRemaining: Double, etaMinutes: Int) async
 }
 
 final class CommuteActivityManager: CommuteActivityManagerProtocol {
     private let throttler = Throttler(interval: 30) // Update at most every 30 seconds
+    private let navigationThrottler = Throttler(interval: 15) // Update navigation every 15 seconds
     
     func areActivitiesEnabled() async -> Bool {
         if #available(iOS 16.1, *) {
@@ -53,7 +56,9 @@ final class CommuteActivityManager: CommuteActivityManagerProtocol {
         
         let attributes = CommuteActivityAttributes(
             tripId: trip.id.uuidString,
-            destinationAddress: trip.destination.address
+            destinationAddress: trip.destination.address,
+            destinationLatitude: trip.destination.coordinate.latitude,
+            destinationLongitude: trip.destination.coordinate.longitude
         )
         
         let contentState = buildContentState(
@@ -233,6 +238,81 @@ final class CommuteActivityManager: CommuteActivityManagerProtocol {
         }
         return nil
     }
+    
+    // MARK: - Navigation Mode
+    
+    func startNavigationMode(for tripId: UUID, currentLocation: Coordinate) async {
+        guard #available(iOS 16.1, *) else { return }
+        
+        #if canImport(ActivityKit)
+        guard let activity = findActivity(for: tripId) else { return }
+        
+        // Calculate initial distance to destination
+        let destination = Coordinate(
+            latitude: activity.attributes.destinationLatitude,
+            longitude: activity.attributes.destinationLongitude
+        )
+        let distanceKm = currentLocation.distance(to: destination) / 1000.0
+        
+        // Estimate ETA based on average speed (40 km/h in city)
+        let estimatedMinutes = Int(distanceKm / 40.0 * 60)
+        
+        // Create navigation state
+        var newState = activity.content.state
+        newState.isNavigating = true
+        newState.distanceRemainingKm = distanceKm
+        newState.progressPercent = 0
+        newState.etaMinutes = estimatedMinutes
+        newState.lastUpdated = Date()
+        
+        let activityContent = ActivityContent(
+            state: newState,
+            staleDate: Date().addingTimeInterval(60)
+        )
+        
+        await activity.update(activityContent)
+        print("[CommuteActivity] Started navigation mode for trip \(tripId)")
+        #endif
+    }
+    
+    func updateNavigationProgress(
+        for tripId: UUID,
+        currentLocation: Coordinate,
+        distanceRemaining: Double,
+        etaMinutes: Int
+    ) async {
+        guard #available(iOS 16.1, *) else { return }
+        
+        #if canImport(ActivityKit)
+        // Throttle updates
+        let shouldUpdate = await navigationThrottler.shouldExecute()
+        guard shouldUpdate else { return }
+        
+        guard let activity = findActivity(for: tripId) else { return }
+        
+        // Calculate progress (assume initial distance was stored or calculate)
+        let destination = Coordinate(
+            latitude: activity.attributes.destinationLatitude,
+            longitude: activity.attributes.destinationLongitude
+        )
+        let totalDistance = currentLocation.distance(to: destination) / 1000.0 + distanceRemaining
+        let progressPercent = totalDistance > 0 ? Int((1 - distanceRemaining / totalDistance) * 100) : 0
+        
+        var newState = activity.content.state
+        newState.isNavigating = true
+        newState.distanceRemainingKm = distanceRemaining
+        newState.progressPercent = min(100, max(0, progressPercent))
+        newState.etaMinutes = etaMinutes
+        newState.lastUpdated = Date()
+        
+        let activityContent = ActivityContent(
+            state: newState,
+            staleDate: Date().addingTimeInterval(60)
+        )
+        
+        await activity.update(activityContent)
+        #endif
+    }
 }
 
 // MARK: - Errors
@@ -300,6 +380,14 @@ class MockCommuteActivityManager: CommuteActivityManagerProtocol {
     
     func isActivityActive(for tripId: UUID) async -> Bool {
         return activeActivities.contains(tripId)
+    }
+    
+    func startNavigationMode(for tripId: UUID, currentLocation: Coordinate) async {
+        // Mock implementation
+    }
+    
+    func updateNavigationProgress(for tripId: UUID, currentLocation: Coordinate, distanceRemaining: Double, etaMinutes: Int) async {
+        // Mock implementation
     }
 }
 

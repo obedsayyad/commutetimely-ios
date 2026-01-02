@@ -45,6 +45,7 @@ extension TripStorageServiceProtocol {
 class TripStorageService: TripStorageServiceProtocol {
     private let tripsSubject = CurrentValueSubject<[Trip], Never>([])
     private let store: DestinationStoreProtocol
+    private let syncService: TripSyncServiceProtocol
     
     // App Group identifier for widget sharing
     private let appGroupIdentifier = "group.com.commutetimely.shared"
@@ -53,10 +54,16 @@ class TripStorageService: TripStorageServiceProtocol {
         tripsSubject.eraseToAnyPublisher()
     }
     
-    init(store: DestinationStoreProtocol = CoreDataDestinationStore()) {
+    init(
+        store: DestinationStoreProtocol = CoreDataDestinationStore(),
+        syncService: TripSyncServiceProtocol? = nil
+    ) {
         self.store = store
+        self.syncService = syncService ?? TripSyncService()
         Task {
             await self.reloadTrips()
+            // Sync from cloud on init
+            await self.syncFromCloud()
         }
     }
     
@@ -80,6 +87,11 @@ class TripStorageService: TripStorageServiceProtocol {
         await reloadTrips()
         // Increment daily trip count
         await incrementDailyTripCount()
+        
+        // Sync to cloud in background
+        Task.detached { [syncService] in
+            try? await syncService.syncToCloud(trip)
+        }
     }
     
     func updateTrip(_ trip: Trip) async throws {
@@ -87,16 +99,34 @@ class TripStorageService: TripStorageServiceProtocol {
         updated.updatedAt = Date()
         try await store.updateTrip(updated)
         await reloadTrips()
+        
+        // Sync to cloud in background
+        Task.detached { [syncService] in
+            try? await syncService.syncToCloud(updated)
+        }
     }
     
     func deleteTrip(id: UUID) async throws {
         try await store.deleteTrip(id: id)
         await reloadTrips()
+        
+        // Delete from cloud in background
+        Task.detached { [syncService] in
+            try? await syncService.deleteFromCloud(id)
+        }
     }
     
     func deleteAllTrips() async throws {
+        let allTrips = await fetchTrips()
         try await store.deleteAll()
         await reloadTrips()
+        
+        // Delete all from cloud in background
+        Task.detached { [syncService] in
+            for trip in allTrips {
+                try? await syncService.deleteFromCloud(trip.id)
+            }
+        }
     }
     
     func exportTrips() async throws -> Data {
@@ -106,6 +136,12 @@ class TripStorageService: TripStorageServiceProtocol {
     func importTrips(from data: Data) async throws {
         try await store.importTrips(from: data)
         await reloadTrips()
+        
+        // Sync imported trips to cloud
+        let trips = await fetchTrips()
+        Task.detached { [syncService] in
+            try? await syncService.syncAllToCloud(trips)
+        }
     }
     
     func canCreateTrip(isSubscribed: Bool, subscriptionTier: SubscriptionTier) async -> Bool {
@@ -140,6 +176,45 @@ class TripStorageService: TripStorageServiceProtocol {
     }
     
     // MARK: - Private
+    
+    private func syncFromCloud() async {
+        do {
+            let cloudTrips = try await syncService.fetchFromCloud()
+            guard !cloudTrips.isEmpty else { return }
+            
+            let localTrips = await fetchTrips()
+            var mergedTrips: [Trip] = []
+            var localTripIds = Set(localTrips.map { $0.id })
+            
+            // Merge: use most recently updated version
+            for cloudTrip in cloudTrips {
+                if let localTrip = localTrips.first(where: { $0.id == cloudTrip.id }) {
+                    // Both exist - use most recently updated
+                    if cloudTrip.updatedAt > localTrip.updatedAt {
+                        mergedTrips.append(cloudTrip)
+                        try? await store.updateTrip(cloudTrip)
+                    } else {
+                        mergedTrips.append(localTrip)
+                    }
+                    localTripIds.remove(cloudTrip.id)
+                } else {
+                    // Cloud only - save locally
+                    mergedTrips.append(cloudTrip)
+                    try? await store.saveTrip(cloudTrip)
+                }
+            }
+            
+            // Add local-only trips (will sync to cloud on next save)
+            for localTrip in localTrips where localTripIds.contains(localTrip.id) {
+                mergedTrips.append(localTrip)
+            }
+            
+            await reloadTrips()
+            print("[TripStorage] Synced \(cloudTrips.count) trips from cloud, merged with \(localTrips.count) local")
+        } catch {
+            print("[TripStorage] Cloud sync failed: \(error)")
+        }
+    }
     
     private func reloadTrips() async {
         let current = await fetchTrips()

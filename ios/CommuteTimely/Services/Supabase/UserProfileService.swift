@@ -58,15 +58,14 @@ final class UserProfileService: UserProfileServiceProtocol {
             
             // Create a struct with only the fields that exist in the database
             // The table uses 'id' as the primary key (matching auth user id)
+            // Note: 'name' column was removed - database only has id, email, avatar_url
             struct UserProfileUpsertRequest: Codable {
                 let id: UUID
-                let name: String?
                 let email: String?
                 let avatarURL: URL?
                 
                 enum CodingKeys: String, CodingKey {
                     case id
-                    case name
                     case email
                     case avatarURL = "avatar_url"
                 }
@@ -74,7 +73,6 @@ final class UserProfileService: UserProfileServiceProtocol {
             
             let upsertRequest = UserProfileUpsertRequest(
                 id: userId,  // Use auth user id as the profile id
-                name: profile.name,
                 email: profile.email,
                 avatarURL: profile.avatarURL
             )

@@ -11,15 +11,18 @@ struct TripListCell: View {
     let trip: Trip
     let onToggle: ((Bool) -> Void)?
     let onTap: (() -> Void)?
+    let onDelete: (() -> Void)?
     
     init(
         trip: Trip,
         onToggle: ((Bool) -> Void)? = nil,
-        onTap: (() -> Void)? = nil
+        onTap: (() -> Void)? = nil,
+        onDelete: (() -> Void)? = nil
     ) {
         self.trip = trip
         self.onToggle = onToggle
         self.onTap = onTap
+        self.onDelete = onDelete
     }
     
     var body: some View {
@@ -70,6 +73,17 @@ struct TripListCell: View {
                 
                 Spacer()
                 
+                // Delete Button
+                if let onDelete = onDelete {
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 16))
+                            .foregroundColor(.red.opacity(0.8))
+                            .frame(width: 32, height: 32)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                
                 // Active Toggle
                 if let onToggle = onToggle {
                     Toggle("", isOn: Binding(
@@ -91,7 +105,7 @@ struct TripListCell: View {
         .buttonStyle(PlainButtonStyle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Trip to \(trip.destination.displayName), arrive by \(formattedArrivalTime)")
-        .accessibilityHint("Double tap to view details")
+        .accessibilityHint("Double tap to edit trip")
         .accessibilityAddTraits(.isButton)
     }
     

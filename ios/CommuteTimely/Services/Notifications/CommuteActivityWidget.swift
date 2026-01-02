@@ -52,30 +52,83 @@ struct LockScreenLiveActivityView: View {
     let context: ActivityViewContext<CommuteActivityAttributes>
     
     var body: some View {
-        HStack(spacing: 12) {
-            // Traffic indicator
-            Circle()
-                .fill(trafficColor(context.state.trafficSeverity))
-                .frame(width: 8, height: 8)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text("\(context.state.firstName), leave in \(context.state.countdownMinutes) min")
-                    .font(.headline)
-                    .foregroundColor(.primary)
+        if context.state.isNavigating {
+            // Navigation mode - show distance and ETA like Google Maps
+            HStack(spacing: 12) {
+                // Progress indicator
+                ZStack {
+                    Circle()
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 4)
+                        .frame(width: 44, height: 44)
+                    Circle()
+                        .trim(from: 0, to: CGFloat(context.state.progressPercent) / 100)
+                        .stroke(Color.blue, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                        .frame(width: 44, height: 44)
+                        .rotationEffect(.degrees(-90))
+                    Image(systemName: "car.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.blue)
+                }
                 
-                Text("\(context.state.destinationName) • \(formatTime(context.state.leaveTime))")
-                    .font(.subheadline)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(context.state.distanceDisplayText)
+                            .font(.title2.bold())
+                            .foregroundColor(.primary)
+                        Text("•")
+                            .foregroundColor(.secondary)
+                        Text("\(context.state.etaMinutes) min")
+                            .font(.title2.bold())
+                            .foregroundColor(.primary)
+                    }
+                    
+                    Text("to \(context.state.destinationName)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+                
+                Spacer()
+                
+                // Traffic indicator
+                VStack(spacing: 2) {
+                    Circle()
+                        .fill(trafficColor(context.state.trafficSeverity))
+                        .frame(width: 10, height: 10)
+                    Text(context.state.trafficSeverity.description)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        } else {
+            // Normal mode - leave time countdown
+            HStack(spacing: 12) {
+                // Traffic indicator
+                Circle()
+                    .fill(trafficColor(context.state.trafficSeverity))
+                    .frame(width: 8, height: 8)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(context.state.firstName), leave in \(context.state.countdownMinutes) min")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    Text("\(context.state.destinationName) • \(formatTime(context.state.leaveTime))")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Weather icon
+                Image(systemName: context.state.weatherCondition.icon)
                     .foregroundColor(.secondary)
             }
-            
-            Spacer()
-            
-            // Weather icon
-            Image(systemName: context.state.weatherCondition.icon)
-                .foregroundColor(.secondary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
     }
     
     private func trafficColor(_ severity: TrafficSeverity) -> Color {
@@ -102,12 +155,24 @@ struct CompactLeadingView: View {
     let context: ActivityViewContext<CommuteActivityAttributes>
     
     var body: some View {
-        HStack(spacing: 4) {
-            Circle()
-                .fill(trafficColor(context.state.trafficSeverity))
-                .frame(width: 6, height: 6)
-            Text("\(context.state.countdownMinutes)m")
-                .font(.system(size: 14, weight: .semibold))
+        if context.state.isNavigating {
+            // Navigation mode - show distance
+            HStack(spacing: 4) {
+                Image(systemName: "car.fill")
+                    .font(.system(size: 10))
+                    .foregroundColor(.blue)
+                Text(context.state.distanceDisplayText)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+        } else {
+            // Normal mode - countdown
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(trafficColor(context.state.trafficSeverity))
+                    .frame(width: 6, height: 6)
+                Text("\(context.state.countdownMinutes)m")
+                    .font(.system(size: 14, weight: .semibold))
+            }
         }
     }
     
@@ -127,11 +192,33 @@ struct CompactTrailingView: View {
     let context: ActivityViewContext<CommuteActivityAttributes>
     
     var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: context.state.weatherCondition.icon)
-                .font(.system(size: 12))
-            Text("\(context.state.travelTimeMinutes)m")
-                .font(.system(size: 12, weight: .medium))
+        if context.state.isNavigating {
+            // Navigation mode - show ETA
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(trafficColor(context.state.trafficSeverity))
+                    .frame(width: 6, height: 6)
+                Text("\(context.state.etaMinutes)m")
+                    .font(.system(size: 12, weight: .medium))
+            }
+        } else {
+            // Normal mode - weather and travel time
+            HStack(spacing: 4) {
+                Image(systemName: context.state.weatherCondition.icon)
+                    .font(.system(size: 12))
+                Text("\(context.state.travelTimeMinutes)m")
+                    .font(.system(size: 12, weight: .medium))
+            }
+        }
+    }
+    
+    private func trafficColor(_ severity: TrafficSeverity) -> Color {
+        switch severity {
+        case .clear: return .green
+        case .light: return .yellow
+        case .moderate: return .orange
+        case .heavy: return .red
+        case .severe: return Color(red: 0.55, green: 0, blue: 0)
         }
     }
 }
