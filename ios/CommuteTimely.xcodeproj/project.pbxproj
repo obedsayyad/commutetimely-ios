@@ -461,7 +461,7 @@
 				DEVELOPMENT_TEAM = K83SWH8YJ2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CommuteTimely/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleURLTypes = "(\n    {\n        CFBundleURLName = \"com.googleusercontent.apps.1013982656069\";\n        CFBundleURLSchemes = (\n            \"com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99\"\n        );\n    },\n    {\n        CFBundleURLName = \"com.develentcorp.CommuteTimely\";\n        CFBundleURLSchemes = (\n            commutetimely\n        );\n    }\n)";
 				INFOPLIST_KEY_GOOGLE_CLIENT_ID = "1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99.apps.googleusercontent.com";
 				INFOPLIST_KEY_GOOGLE_REVERSED_CLIENT_ID = "com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99";
@@ -504,7 +504,7 @@
 				DEVELOPMENT_TEAM = K83SWH8YJ2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CommuteTimely/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleURLTypes = "(\n    {\n        CFBundleURLName = \"com.googleusercontent.apps.1013982656069\";\n        CFBundleURLSchemes = (\n            \"com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99\"\n        );\n    },\n    {\n        CFBundleURLName = \"com.develentcorp.CommuteTimely\";\n        CFBundleURLSchemes = (\n            commutetimely\n        );\n    }\n)";
 				INFOPLIST_KEY_GOOGLE_CLIENT_ID = "1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99.apps.googleusercontent.com";
 				INFOPLIST_KEY_GOOGLE_REVERSED_CLIENT_ID = "com.googleusercontent.apps.1013982656069-7hfdcs1frvl2movoodihvjp5imr48o99";
