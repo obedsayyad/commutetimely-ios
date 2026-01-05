@@ -17,6 +17,7 @@ protocol SubscriptionServiceProtocol {
     func restorePurchases() async throws
     func checkEntitlement(_ identifier: String) async -> Bool
     func refreshSubscriptionStatus() async
+    func getCurrentOfferings() async throws -> Offerings?
 }
 
 @MainActor
@@ -100,6 +101,10 @@ class SubscriptionService: NSObject, SubscriptionServiceProtocol {
         } catch {
             print("[SubscriptionService] Failed to refresh subscription status: \(error.localizedDescription)")
         }
+    }
+    
+    func getCurrentOfferings() async throws -> Offerings? {
+        return try await Purchases.shared.offerings()
     }
     
     // MARK: - Private Helpers
@@ -223,5 +228,8 @@ class MockSubscriptionService: SubscriptionServiceProtocol {
     func refreshSubscriptionStatus() async {
         // Mock: No-op
     }
+    
+    func getCurrentOfferings() async throws -> Offerings? {
+        return nil
+    }
 }
-
