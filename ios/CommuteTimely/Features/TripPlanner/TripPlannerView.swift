@@ -185,12 +185,8 @@ class TripPlannerViewModel: BaseViewModel {
         case .currentLocation:
             // Use location service to get current location
             do {
-                if let location = try await locationService.requestLocation() {
-                    origin = Coordinate(clCoordinate: location.coordinate)
-                } else {
-                    setError("Unable to get current location. Please enable location services.")
-                    return
-                }
+                let location = try await locationService.getCurrentLocation()
+                origin = Coordinate(clCoordinate: location.coordinate)
             } catch {
                 print("[TripPlanner] Location fetch failed: \(error.localizedDescription)")
                 setError("Unable to get current location. Please check location permissions.")
