@@ -172,7 +172,15 @@ struct TripFeedback: Codable {
     let arrivalStatus: ArrivalStatus
     let minutesDifference: Int
     let actualArrivalTime: Date
-    let submittedAt: Date = Date()
+    let submittedAt: Date
+    
+    init(tripId: UUID, arrivalStatus: ArrivalStatus, minutesDifference: Int, actualArrivalTime: Date) {
+        self.tripId = tripId
+        self.arrivalStatus = arrivalStatus
+        self.minutesDifference = minutesDifference
+        self.actualArrivalTime = actualArrivalTime
+        self.submittedAt = Date()
+    }
     
     var accuracyScore: Double {
         switch arrivalStatus {
