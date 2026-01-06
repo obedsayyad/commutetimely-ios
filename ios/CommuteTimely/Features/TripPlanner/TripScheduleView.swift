@@ -14,6 +14,41 @@ struct TripScheduleView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.xl) {
+                // Origin Selection
+                VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                    Text("Starting From")
+                        .font(DesignTokens.Typography.headline)
+                        .foregroundColor(DesignTokens.Colors.textPrimary)
+                    
+                    Text("Where will you be leaving from?")
+                        .font(DesignTokens.Typography.caption)
+                        .foregroundColor(DesignTokens.Colors.textSecondary)
+                    
+                    VStack(spacing: DesignTokens.Spacing.xs) {
+                        // Current Location Option
+                        OriginOptionButton(
+                            icon: "location.fill",
+                            title: "Current Location",
+                            subtitle: "Use my location when it's time to leave",
+                            isSelected: viewModel.selectedOrigin.isCurrentLocation
+                        ) {
+                            viewModel.selectedOrigin = .currentLocation
+                        }
+                        
+                        // Custom Location Option
+                        OriginOptionButton(
+                            icon: "mappin.circle.fill",
+                            title: viewModel.selectedOrigin.isCurrentLocation ? "Choose Location" : viewModel.selectedOrigin.displayName,
+                            subtitle: "Set a specific starting point",
+                            isSelected: !viewModel.selectedOrigin.isCurrentLocation
+                        ) {
+                            // TODO: Show location picker
+                            // For now, just toggle back to current location
+                            // This will be enhanced when we add the location picker
+                        }
+                    }
+                }
+                
                 // Arrival Time
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
                     Text("When do you want to arrive?")
@@ -111,6 +146,56 @@ struct DayButton: View {
                         .stroke(DesignTokens.Colors.primaryFallback(), lineWidth: isSelected ? 0 : 1)
                 )
         }
+    }
+}
+
+// MARK: - Origin Option Button
+
+struct OriginOptionButton: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: DesignTokens.Spacing.md) {
+                // Icon
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(isSelected ? DesignTokens.Colors.primaryFallback() : DesignTokens.Colors.textSecondary)
+                    .frame(width: 40)
+                
+                // Text
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(DesignTokens.Typography.body)
+                        .foregroundColor(DesignTokens.Colors.textPrimary)
+                    
+                    Text(subtitle)
+                        .font(DesignTokens.Typography.caption)
+                        .foregroundColor(DesignTokens.Colors.textSecondary)
+                }
+                
+                Spacer()
+                
+                // Checkmark
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(DesignTokens.Colors.primaryFallback())
+                }
+            }
+            .padding(DesignTokens.Spacing.md)
+            .background(DesignTokens.Colors.surface)
+            .cornerRadius(DesignTokens.CornerRadius.md)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md)
+                    .stroke(isSelected ? DesignTokens.Colors.primaryFallback() : Color.clear, lineWidth: 2)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 

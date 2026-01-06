@@ -108,6 +108,7 @@ enum PlannerStep: Int, CaseIterable {
 
 @MainActor
 class TripPlannerViewModel: BaseViewModel {
+    @Published var selectedOrigin: TripOrigin = .currentLocation
     @Published var selectedDestination: Location?
     @Published var arrivalTime = Date().addingTimeInterval(3600) // 1 hour from now
     @Published var bufferMinutes = 10
@@ -128,6 +129,7 @@ class TripPlannerViewModel: BaseViewModel {
     private let subscriptionService: SubscriptionServiceProtocol
     private let analyticsService: AnalyticsServiceProtocol
     private let leaveTimeScheduler: LeaveTimeSchedulerProtocol
+    private let locationService: LocationServiceProtocol
     
     @Published var subscriptionStatus: SubscriptionStatus = SubscriptionStatus()
     @Published var showPaywall = false
@@ -140,7 +142,8 @@ class TripPlannerViewModel: BaseViewModel {
         tripStorageService: TripStorageServiceProtocol,
         subscriptionService: SubscriptionServiceProtocol,
         analyticsService: AnalyticsServiceProtocol,
-        leaveTimeScheduler: LeaveTimeSchedulerProtocol
+        leaveTimeScheduler: LeaveTimeSchedulerProtocol,
+        locationService: LocationServiceProtocol
     ) {
         self.mapboxService = mapboxService
         self.searchService = searchService
@@ -150,6 +153,7 @@ class TripPlannerViewModel: BaseViewModel {
         self.subscriptionService = subscriptionService
         self.analyticsService = analyticsService
         self.leaveTimeScheduler = leaveTimeScheduler
+        self.locationService = locationService
         super.init()
         
         // Subscribe to subscription status updates
@@ -175,8 +179,26 @@ class TripPlannerViewModel: BaseViewModel {
         
         setLoading()
         
-        // Mock origin for now (should use actual location)
-        let origin = Coordinate(latitude: 37.7749, longitude: -122.4194)
+        // Get actual origin based on user selection
+        let origin: Coordinate
+        switch selectedOrigin {
+        case .currentLocation:
+            // Use location service to get current location
+            do {
+                if let location = try await locationService.requestLocation() {
+                    origin = Coordinate(clCoordinate: location.coordinate)
+                } else {
+                    setError("Unable to get current location. Please enable location services.")
+                    return
+                }
+            } catch {
+                print("[TripPlanner] Location fetch failed: \(error.localizedDescription)")
+                setError("Unable to get current location. Please check location permissions.")
+                return
+            }
+        case .customLocation(let location):
+            origin = location.coordinate
+        }
         
         // Try to fetch route, fallback to estimated route if it fails
         var route: RouteInfo
@@ -306,6 +328,7 @@ class TripPlannerViewModel: BaseViewModel {
         }
         
         let trip = Trip(
+            origin: selectedOrigin,
             destination: destination,
             arrivalTime: arrivalTime,
             bufferMinutes: bufferMinutes,

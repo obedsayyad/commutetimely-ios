@@ -14,7 +14,21 @@
 
   ],
   "products" : [
-
+    {
+      "displayPrice" : "99.99",
+      "familyShareable" : false,
+      "internalID" : "6756894000",
+      "localizations" : [
+        {
+          "description" : "Lifetime access to all premium features",
+          "displayName" : "Commute Timely PRO Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.develentcorp.commutetimely.pro.lifetime",
+      "referenceName" : "Commute timely PRO Lifetime",
+      "type" : "NonConsumable"
+    }
   ],
   "settings" : {
     "_applicationInternalID" : "6752309705",

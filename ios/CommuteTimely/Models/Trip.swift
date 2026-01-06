@@ -10,6 +10,7 @@ import CoreLocation
 
 struct Trip: Identifiable, Codable, Equatable {
     let id: UUID
+    var origin: TripOrigin  // NEW: Support for custom start location
     var destination: Location
     var arrivalTime: Date
     var bufferMinutes: Int
@@ -28,6 +29,7 @@ struct Trip: Identifiable, Codable, Equatable {
     
     init(
         id: UUID = UUID(),
+        origin: TripOrigin = .currentLocation,
         destination: Location,
         arrivalTime: Date,
         bufferMinutes: Int = 10,
@@ -45,6 +47,7 @@ struct Trip: Identifiable, Codable, Equatable {
         arrivalBufferMinutes: Int = 0
     ) {
         self.id = id
+        self.origin = origin
         self.destination = destination
         self.arrivalTime = arrivalTime
         self.bufferMinutes = bufferMinutes
@@ -90,6 +93,7 @@ struct Trip: Identifiable, Codable, Equatable {
     
     enum CodingKeys: String, CodingKey {
         case id
+        case origin
         case destination
         case arrivalTime
         case bufferMinutes
@@ -110,6 +114,7 @@ struct Trip: Identifiable, Codable, Equatable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        origin = try container.decodeIfPresent(TripOrigin.self, forKey: .origin) ?? .currentLocation
         destination = try container.decode(Location.self, forKey: .destination)
         arrivalTime = try container.decode(Date.self, forKey: .arrivalTime)
         bufferMinutes = try container.decodeIfPresent(Int.self, forKey: .bufferMinutes) ?? 10
@@ -138,6 +143,7 @@ struct Trip: Identifiable, Codable, Equatable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
+        try container.encode(origin, forKey: .origin)
         try container.encode(destination, forKey: .destination)
         try container.encode(arrivalTime, forKey: .arrivalTime)
         try container.encode(bufferMinutes, forKey: .bufferMinutes)
@@ -311,3 +317,25 @@ struct TripNotificationSettings: Codable, Equatable {
     }
 }
 
+// MARK: - Trip Origin
+
+enum TripOrigin: Codable, Equatable {
+    case currentLocation
+    case customLocation(Location)
+    
+    var displayName: String {
+        switch self {
+        case .currentLocation:
+            return "Current Location"
+        case .customLocation(let location):
+            return location.displayName
+        }
+    }
+    
+    var isCurrentLocation: Bool {
+        if case .currentLocation = self {
+            return true
+        }
+        return false
+    }
+}

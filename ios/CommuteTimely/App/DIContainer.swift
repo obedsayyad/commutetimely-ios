@@ -381,7 +381,8 @@ class DIContainer: ServiceContainer {
             tripStorageService: tripStorageService,
             subscriptionService: subscriptionService,
             analyticsService: analyticsService,
-            leaveTimeScheduler: leaveTimeScheduler
+            leaveTimeScheduler: leaveTimeScheduler,
+            locationService: locationService
         )
     }
     
