@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import CoreLocation
 
 struct TripPlannerView: View {
     let mode: TripPlannerMode
