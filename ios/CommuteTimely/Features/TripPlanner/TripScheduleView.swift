@@ -106,14 +106,14 @@ struct TripScheduleView: View {
                     }
                 }
                 
-                Spacer()
-                
+                // Preview Button
                 CTButton("Preview Trip", style: .primary) {
                     Task {
                         await viewModel.fetchPrediction()
                         onNext()
                     }
                 }
+                .padding(.top, DesignTokens.Spacing.lg)
             }
             .padding()
         }
