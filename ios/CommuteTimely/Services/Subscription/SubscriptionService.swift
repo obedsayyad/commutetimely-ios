@@ -104,7 +104,79 @@ class SubscriptionService: NSObject, SubscriptionServiceProtocol {
     }
     
     func getCurrentOfferings() async throws -> Offerings? {
-        return try await Purchases.shared.offerings()
+        print("[SubscriptionService] 🔄 Fetching offerings from RevenueCat...")
+        
+        do {
+            let offerings = try await Purchases.shared.offerings()
+            
+            print("[SubscriptionService] ✅ Successfully loaded offerings")
+            print("[SubscriptionService] 📊 Offerings Summary:")
+            print("[SubscriptionService]   - Total offerings: \(offerings.all.count)")
+            print("[SubscriptionService]   - Current offering: \(offerings.current?.identifier ?? "NONE")")
+            
+            if let current = offerings.current {
+                print("[SubscriptionService] 📦 Current Offering Details:")
+                print("[SubscriptionService]   - ID: \(current.identifier)")
+                print("[SubscriptionService]   - Description: \(current.serverDescription)")
+                print("[SubscriptionService]   - Available packages: \(current.availablePackages.count)")
+                
+                for (index, package) in current.availablePackages.enumerated() {
+                    print("[SubscriptionService]   Package \(index + 1):")
+                    print("[SubscriptionService]     - Identifier: \(package.identifier)")
+                    print("[SubscriptionService]     - Product ID: \(package.storeProduct.productIdentifier)")
+                    print("[SubscriptionService]     - Title: \(package.storeProduct.localizedTitle)")
+                    print("[SubscriptionService]     - Price: \(package.storeProduct.localizedPriceString)")
+                    print("[SubscriptionService]     - Subscription Period: \(package.storeProduct.subscriptionPeriod?.debugDescription ?? "N/A")")
+                }
+            } else {
+                print("[SubscriptionService] ⚠️ WARNING: No current offering is set!")
+                print("[SubscriptionService] 💡 Action Required:")
+                print("[SubscriptionService]    1. Go to RevenueCat Dashboard")
+                print("[SubscriptionService]    2. Navigate to Offerings")
+                print("[SubscriptionService]    3. Create an offering and mark it as 'Current'")
+            }
+            
+            // List all offerings for debugging
+            if !offerings.all.isEmpty {
+                print("[SubscriptionService] 📋 All Available Offerings:")
+                for (key, offering) in offerings.all {
+                    print("[SubscriptionService]   - \(key): \(offering.identifier) (Packages: \(offering.availablePackages.count))")
+                }
+            }
+            
+            return offerings
+        } catch {
+            print("[SubscriptionService] ❌ Failed to load offerings")
+            
+            if let rcError = error as? ErrorCode {
+                print("[SubscriptionService] 🔴 RevenueCat Error Details:")
+                print("[SubscriptionService]   - Error Code: \(rcError.errorCode)")
+                print("[SubscriptionService]   - Error Type: \(rcError)")
+                print("[SubscriptionService]   - Description: \(rcError.localizedDescription)")
+                
+                switch rcError {
+                case .configurationError:
+                    print("[SubscriptionService] 💡 Configuration Error - Possible causes:")
+                    print("[SubscriptionService]    • Invalid API key")
+                    print("[SubscriptionService]    • API key is for wrong project")
+                    print("[SubscriptionService]    • No offerings configured in RevenueCat Dashboard")
+                    print("[SubscriptionService]    • Products not properly linked to offerings")
+                case .networkError:
+                    print("[SubscriptionService] 💡 Network Error - Check internet connection")
+                case .storeProblemError:
+                    print("[SubscriptionService] 💡 Store Problem - App Store Connect issue")
+                case .productNotAvailableForPurchaseError:
+                    print("[SubscriptionService] 💡 Products not available - Check App Store Connect")
+                default:
+                    print("[SubscriptionService] 💡 Unexpected error type")
+                }
+            } else {
+                print("[SubscriptionService] 🔴 Non-RevenueCat Error:")
+                print("[SubscriptionService]   - \(error.localizedDescription)")
+            }
+            
+            throw error
+        }
     }
     
     // MARK: - Private Helpers
