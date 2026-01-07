@@ -148,36 +148,82 @@ struct PaywallView: View {
     }
     
     private func paywallView(offering: Offering) -> some View {
-        RevenueCatUI.PaywallView(offering: offering)
-            .onPurchaseCompleted { customerInfo in
-                print("[PaywallView] ✅ Purchase completed successfully")
-                analyticsService.trackEvent(.subscriptionStarted(tier: "premium"))
-                
-                // Refresh subscription status to update all UI immediately
-                Task {
-                    await subscriptionService.refreshSubscriptionStatus()
-                }
-                dismiss()
-            }
-            .onRestoreCompleted { customerInfo in
-                print("[PaywallView] ✅ Restore completed")
-                
-                // Refresh subscription status
-                Task {
-                    await subscriptionService.refreshSubscriptionStatus()
-                }
-                
-                // Check if user now has entitlements
-                if !customerInfo.entitlements.active.isEmpty {
-                    print("[PaywallView] ✅ Active entitlements found after restore")
+        VStack(spacing: 0) {
+            // RevenueCat Paywall
+            RevenueCatUI.PaywallView(offering: offering)
+                .onPurchaseCompleted { customerInfo in
+                    print("[PaywallView] ✅ Purchase completed successfully")
+                    analyticsService.trackEvent(.subscriptionStarted(tier: "premium"))
+                    
+                    // Refresh subscription status to update all UI immediately
+                    Task {
+                        await subscriptionService.refreshSubscriptionStatus()
+                    }
                     dismiss()
-                } else {
-                    print("[PaywallView] ⚠️ No active entitlements found after restore")
+                }
+                .onRestoreCompleted { customerInfo in
+                    print("[PaywallView] ✅ Restore completed")
+                    
+                    // Refresh subscription status
+                    Task {
+                        await subscriptionService.refreshSubscriptionStatus()
+                    }
+                    
+                    // Check if user now has entitlements
+                    if !customerInfo.entitlements.active.isEmpty {
+                        print("[PaywallView] ✅ Active entitlements found after restore")
+                        dismiss()
+                    } else {
+                        print("[PaywallView] ⚠️ No active entitlements found after restore")
+                    }
+                }
+                .onPurchaseCancelled {
+                    print("[PaywallView] ℹ️ Purchase cancelled by user")
+                }
+            
+            // Legal Links Footer (Required by App Store)
+            legalLinksFooter
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Color(UIColor.systemBackground))
+        }
+    }
+    
+    private var legalLinksFooter: some View {
+        VStack(spacing: 12) {
+            Divider()
+            
+            HStack(spacing: 16) {
+                Link(destination: URL(string: AppConfiguration.privacyPolicyURL)!) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "hand.raised.fill")
+                            .font(.caption)
+                        Text("Privacy Policy")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.secondary)
+                }
+                
+                Text("•")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                
+                Link(destination: URL(string: AppConfiguration.termsOfUseURL)!) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "doc.text.fill")
+                            .font(.caption)
+                        Text("Terms of Use")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.secondary)
                 }
             }
-            .onPurchaseCancelled {
-                print("[PaywallView] ℹ️ Purchase cancelled by user")
-            }
+            
+            Text("By subscribing, you agree to our Terms of Use and Privacy Policy")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
     }
     
     // MARK: - Data Loading
@@ -186,7 +232,11 @@ struct PaywallView: View {
         isLoading = true
         errorMessage = nil
         
+        // Log device information for debugging
+        let deviceModel = UIDevice.current.model
+        let systemVersion = UIDevice.current.systemVersion
         print("[PaywallView] 🔄 Loading offerings...")
+        print("[PaywallView] 📱 Device: \(deviceModel), iOS: \(systemVersion)")
         
         do {
             offerings = try await subscriptionService.getCurrentOfferings()
@@ -207,12 +257,22 @@ struct PaywallView: View {
                 • RevenueCat Dashboard has an offering marked as "Current"
                 • Products are attached to the offering
                 • App Store Connect products are properly configured
+                
+                Device: \(deviceModel) (\(systemVersion))
                 """
             }
             
             isLoading = false
         } catch {
             print("[PaywallView] ❌ Failed to load offerings: \(error)")
+            print("[PaywallView] 🔍 Error details: \(error.localizedDescription)")
+            
+            // Log additional diagnostic information
+            if let nsError = error as NSError? {
+                print("[PaywallView] 🔍 Error domain: \(nsError.domain)")
+                print("[PaywallView] 🔍 Error code: \(nsError.code)")
+                print("[PaywallView] 🔍 Error userInfo: \(nsError.userInfo)")
+            }
             
             isLoading = false
             
@@ -226,18 +286,27 @@ struct PaywallView: View {
                     There's an issue with the subscription setup. Please contact support.
                     
                     Technical details: \(rcError.localizedDescription)
+                    Device: \(deviceModel) (\(systemVersion))
                     """
                 case .networkError:
                     errorMessage = """
                     Network Error
                     
                     Unable to connect to the subscription service. Please check your internet connection and try again.
+                    
+                    Device: \(deviceModel) (\(systemVersion))
                     """
                 case .storeProblemError:
                     errorMessage = """
                     App Store Error
                     
                     There's a problem connecting to the App Store. Please try again later.
+                    
+                    This may occur in sandbox testing. If you're a reviewer, please ensure:
+                    • Sandbox account is signed in (Settings → App Store → Sandbox Account)
+                    • Products are approved in App Store Connect
+                    
+                    Device: \(deviceModel) (\(systemVersion))
                     """
                 default:
                     errorMessage = """
@@ -246,6 +315,7 @@ struct PaywallView: View {
                     \(rcError.localizedDescription)
                     
                     Error code: \(rcError.errorCode)
+                    Device: \(deviceModel) (\(systemVersion))
                     """
                 }
             } else {
@@ -255,6 +325,8 @@ struct PaywallView: View {
                 \(error.localizedDescription)
                 
                 Please try again or contact support if the problem persists.
+                
+                Device: \(deviceModel) (\(systemVersion))
                 """
             }
         }

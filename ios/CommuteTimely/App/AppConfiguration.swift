@@ -130,6 +130,19 @@ enum AppConfiguration {
         Bundle.main.bundleIdentifier ?? "com.develentcorp.CommuteTimely"
     }
     
+    // MARK: - Legal Documents
+    
+    /// Privacy Policy URL for App Store compliance
+    static var privacyPolicyURL: String {
+        "https://www.commutetimely.com/privacy-policy"
+    }
+    
+    /// Terms of Use (EULA) URL for App Store compliance
+    static var termsOfUseURL: String {
+        "https://www.commutetimely.com/terms-of-service"
+    }
+
+    
     // MARK: - Private Helper
     
     /// Safely retrieves a configuration value from multiple sources.
