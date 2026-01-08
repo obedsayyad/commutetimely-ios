@@ -148,82 +148,36 @@ struct PaywallView: View {
     }
     
     private func paywallView(offering: Offering) -> some View {
-        VStack(spacing: 0) {
-            // RevenueCat Paywall
-            RevenueCatUI.PaywallView(offering: offering)
-                .onPurchaseCompleted { customerInfo in
-                    print("[PaywallView] ✅ Purchase completed successfully")
-                    analyticsService.trackEvent(.subscriptionStarted(tier: "premium"))
-                    
-                    // Refresh subscription status to update all UI immediately
-                    Task {
-                        await subscriptionService.refreshSubscriptionStatus()
-                    }
+        RevenueCatUI.PaywallView(offering: offering)
+            .onPurchaseCompleted { customerInfo in
+                print("[PaywallView] ✅ Purchase completed successfully")
+                analyticsService.trackEvent(.subscriptionStarted(tier: "premium"))
+                
+                // Refresh subscription status to update all UI immediately
+                Task {
+                    await subscriptionService.refreshSubscriptionStatus()
+                }
+                dismiss()
+            }
+            .onRestoreCompleted { customerInfo in
+                print("[PaywallView] ✅ Restore completed")
+                
+                // Refresh subscription status
+                Task {
+                    await subscriptionService.refreshSubscriptionStatus()
+                }
+                
+                // Check if user now has entitlements
+                if !customerInfo.entitlements.active.isEmpty {
+                    print("[PaywallView] ✅ Active entitlements found after restore")
                     dismiss()
-                }
-                .onRestoreCompleted { customerInfo in
-                    print("[PaywallView] ✅ Restore completed")
-                    
-                    // Refresh subscription status
-                    Task {
-                        await subscriptionService.refreshSubscriptionStatus()
-                    }
-                    
-                    // Check if user now has entitlements
-                    if !customerInfo.entitlements.active.isEmpty {
-                        print("[PaywallView] ✅ Active entitlements found after restore")
-                        dismiss()
-                    } else {
-                        print("[PaywallView] ⚠️ No active entitlements found after restore")
-                    }
-                }
-                .onPurchaseCancelled {
-                    print("[PaywallView] ℹ️ Purchase cancelled by user")
-                }
-            
-            // Legal Links Footer (Required by App Store)
-            legalLinksFooter
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .background(Color(UIColor.systemBackground))
-        }
-    }
-    
-    private var legalLinksFooter: some View {
-        VStack(spacing: 12) {
-            Divider()
-            
-            HStack(spacing: 16) {
-                Link(destination: URL(string: AppConfiguration.privacyPolicyURL)!) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "hand.raised.fill")
-                            .font(.caption)
-                        Text("Privacy Policy")
-                            .font(.caption)
-                    }
-                    .foregroundColor(.secondary)
-                }
-                
-                Text("•")
-                    .foregroundColor(.secondary)
-                    .font(.caption)
-                
-                Link(destination: URL(string: AppConfiguration.termsOfUseURL)!) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "doc.text.fill")
-                            .font(.caption)
-                        Text("Terms of Use")
-                            .font(.caption)
-                    }
-                    .foregroundColor(.secondary)
+                } else {
+                    print("[PaywallView] ⚠️ No active entitlements found after restore")
                 }
             }
-            
-            Text("By subscribing, you agree to our Terms of Use and Privacy Policy")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
+            .onPurchaseCancelled {
+                print("[PaywallView] ℹ️ Purchase cancelled by user")
+            }
     }
     
     // MARK: - Data Loading
