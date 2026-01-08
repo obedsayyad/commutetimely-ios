@@ -415,38 +415,6 @@ struct SettingsView: View {
                             .font(DesignTokens.Typography.body)
                             .foregroundColor(DesignTokens.Colors.textSecondary)
                     }
-                    
-                    Divider()
-                    
-                    Button {
-                        // Open privacy policy
-                    } label: {
-                        HStack {
-                            Text("Privacy Policy")
-                                .font(DesignTokens.Typography.body)
-                                .foregroundColor(DesignTokens.Colors.primaryFallback())
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(DesignTokens.Colors.textSecondary)
-                        }
-                    }
-                    
-                    Divider()
-                    
-                    Button {
-                        // Open terms
-                    } label: {
-                        HStack {
-                            Text("Terms of Service")
-                                .font(DesignTokens.Typography.body)
-                                .foregroundColor(DesignTokens.Colors.primaryFallback())
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(DesignTokens.Colors.textSecondary)
-                        }
-                    }
                 }
             }
             .padding(.horizontal, DesignTokens.Spacing.md)
