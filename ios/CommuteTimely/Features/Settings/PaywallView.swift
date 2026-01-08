@@ -238,6 +238,10 @@ struct PaywallView: View {
         print("[PaywallView] 🔄 Loading offerings...")
         print("[PaywallView] 📱 Device: \(deviceModel), iOS: \(systemVersion)")
         
+        // Invalidate cache to force-refresh paywall data from RevenueCat
+        Purchases.shared.invalidateCustomerInfoCache()
+        print("[PaywallView] 🗑️ Invalidated customer info cache")
+        
         do {
             offerings = try await subscriptionService.getCurrentOfferings()
             
