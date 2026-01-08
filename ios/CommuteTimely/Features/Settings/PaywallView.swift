@@ -148,7 +148,7 @@ struct PaywallView: View {
     }
     
     private func paywallView(offering: Offering) -> some View {
-        RevenueCatUI.PaywallView(offering: offering)
+        RevenueCatUI.PaywallView(offering: offering, displayCloseButton: false)
             .onPurchaseCompleted { customerInfo in
                 print("[PaywallView] ✅ Purchase completed successfully")
                 analyticsService.trackEvent(.subscriptionStarted(tier: "premium"))
