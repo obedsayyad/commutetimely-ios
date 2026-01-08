@@ -149,6 +149,7 @@ struct PaywallView: View {
     
     private func paywallView(offering: Offering) -> some View {
         RevenueCatUI.PaywallView(offering: offering, displayCloseButton: false)
+            .tint(Color(red: 59/255, green: 130/255, blue: 246/255)) // Blue accent color (#3B82F6)
             .onPurchaseCompleted { customerInfo in
                 print("[PaywallView] ✅ Purchase completed successfully")
                 analyticsService.trackEvent(.subscriptionStarted(tier: "premium"))
