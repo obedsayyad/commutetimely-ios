@@ -335,6 +335,7 @@ extension Notification.Name {
     static let abortTrip = Notification.Name("abortTrip")
     static let tripFeedbackReceived = Notification.Name("tripFeedbackReceived")
     static let openNavigation = Notification.Name("openNavigation")
+    static let declinedTripNavigation = Notification.Name("declinedTripNavigation")
 }
 
 // MARK: - Mock Service
