@@ -26,7 +26,7 @@ protocol ServiceContainer {
     var tripStorageService: TripStorageServiceProtocol { get }
     var userPreferencesService: UserPreferencesServiceProtocol { get }
     var authManager: AuthSessionController { get }
-    var cloudSyncService: CloudSyncServiceProtocol { get }
+
     var themeManager: ThemeManager { get }
     var personalizedNotificationScheduler: PersonalizedNotificationSchedulerProtocol { get }
     var commuteActivityManager: CommuteActivityManagerProtocol { get }
@@ -243,19 +243,7 @@ class DIContainer: ServiceContainer {
         return fallbackClient
     }
     
-    lazy var cloudSyncService: CloudSyncServiceProtocol = {
-        // Use a default localhost URL if not configured, or fall back to mock
-        let baseURL = AppConfiguration.authServerURL ?? "http://localhost:5000"
-        Self.logger.info("Cloud Sync Service using base URL: \(baseURL)")
-        return CloudSyncService(
-            baseURL: baseURL,
-            networkService: networkService,
-            authTokenProvider: { [weak self] in
-                guard let self = self else { return nil }
-                return try? await self.authManager.idToken()
-            }
-        )
-    }()
+
     
     lazy var themeManager: ThemeManager = {
         ThemeManager(analyticsService: analyticsService)
@@ -451,7 +439,7 @@ class MockServiceContainer: ServiceContainer {
     lazy var authManager: AuthSessionController = {
         SupabaseMockAuthController()
     }()
-    var cloudSyncService: CloudSyncServiceProtocol = MockCloudSyncService()
+
     var themeManager: ThemeManager = ThemeManager()
     var personalizedNotificationScheduler: PersonalizedNotificationSchedulerProtocol = MockPersonalizedNotificationScheduler()
     

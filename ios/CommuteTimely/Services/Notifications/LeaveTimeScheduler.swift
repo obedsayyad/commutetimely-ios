@@ -166,6 +166,125 @@ final class LeaveTimeScheduler: LeaveTimeSchedulerProtocol {
                     }
                 }
             }
+        
+        setupNotificationObservers()
+    }
+    
+    private func setupNotificationObservers() {
+        NotificationCenter.default.addObserver(
+            forName: .startTripNavigation,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleStartTripNavigation(notification)
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: .snoozeTrip,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleSnoozeTrip(notification)
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: .abortTrip,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleAbortTrip(notification)
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: .tripFeedbackReceived,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleTripFeedback(notification)
+        }
+    }
+    
+    private func handleStartTripNavigation(_ notification: Notification) {
+        guard let tripIdString = notification.userInfo?["tripId"] as? String,
+              let tripId = UUID(uuidString: tripIdString) else { return }
+        
+        Task {
+            guard let trip = await tripStorageService.fetchTrip(id: tripId) else { return }
+            
+            // Switch Dynamic Island to Navigation Mode
+            if let currentLoc = lastKnownCoordinate {
+                await commuteActivityManager.startNavigationMode(for: tripId, currentLocation: currentLoc)
+            }
+            
+            // Schedule Feedback Notification for arrival time
+            // (Assuming arrival is roughly now + travel time, or at scheduled arrival)
+            // For simplicity, schedule feedback at expected arrival time
+            scheduleFeedbackNotification(for: trip)
+            
+            print("[Scheduler] Started navigation for trip \(tripId)")
+        }
+    }
+    
+    private func handleSnoozeTrip(_ notification: Notification) {
+        guard let tripIdString = notification.userInfo?["tripId"] as? String,
+              let tripId = UUID(uuidString: tripIdString),
+              let minutes = notification.userInfo?["minutes"] as? Int else { return }
+        
+        Task {
+            guard let trip = await tripStorageService.fetchTrip(id: tripId) else { return }
+            
+            // Calculate new leave time
+            let newLeaveTime = Date().addingTimeInterval(Double(minutes * 60))
+            let reason = "Snoozed for \(minutes) minutes"
+            
+            // Reschedule
+            try? await leaveTimeNotificationScheduler.rescheduleLeaveTimeNotification(
+                for: trip,
+                newLeaveTime: newLeaveTime,
+                explanation: reason,
+                firstName: authManager.currentUser?.firstName
+            )
+            
+            print("[Scheduler] Snoozed trip \(tripId) for \(minutes)m")
+        }
+    }
+    
+    private func handleAbortTrip(_ notification: Notification) {
+        guard let tripIdString = notification.userInfo?["tripId"] as? String,
+              let tripId = UUID(uuidString: tripIdString) else { return }
+        
+        Task {
+            guard let trip = await tripStorageService.fetchTrip(id: tripId) else { return }
+            await cancelTrip(trip)
+            print("[Scheduler] Aborted trip \(tripId)")
+        }
+    }
+    
+    private func handleTripFeedback(_ notification: Notification) {
+        // Analytics code would go here
+        print("[Scheduler] Feedback received & logged")
+    }
+    
+    private func scheduleFeedbackNotification(for trip: Trip) {
+        Task {
+            // Schedule "Did you arrive?" notification at arrival time + 5 mins
+            let feedbackTime = trip.arrivalTime.addingTimeInterval(300) 
+            
+            let content = UNMutableNotificationContent()
+            content.title = "Trip Complete"
+            content.body = "Did you arrive on time?"
+            content.categoryIdentifier = "TRIP_FEEDBACK"
+            content.userInfo = ["tripId": trip.id.uuidString]
+            
+            let components = Calendar.current.dateComponents(
+                [.year, .month, .day, .hour, .minute],
+                from: feedbackTime
+            )
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+            let request = UNNotificationRequest(identifier: "feedback_\(trip.id.uuidString)", content: content, trigger: trigger)
+            
+            try? await UNUserNotificationCenter.current().add(request)
+        }
     }
     
     private func shouldTriggerReschedule(for coordinate: Coordinate) -> Bool {
@@ -176,7 +295,14 @@ final class LeaveTimeScheduler: LeaveTimeSchedulerProtocol {
     }
     
     private func makeRecommendation(for trip: Trip) async -> LeaveTimeRecommendation {
-        let origin = lastKnownCoordinate ?? Coordinate(latitude: 37.7749, longitude: -122.4194)
+        let origin: Coordinate
+        switch trip.origin {
+        case .currentLocation:
+            origin = lastKnownCoordinate ?? Coordinate(latitude: 37.7749, longitude: -122.4194)
+        case .customLocation(let location):
+            origin = location.coordinate
+        }
+        
         return await predictionEngine.recommendation(
             origin: origin,
             destination: trip.destination.coordinate,

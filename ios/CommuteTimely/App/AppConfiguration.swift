@@ -61,9 +61,7 @@ enum AppConfiguration {
         value(for: "PREDICTION_SERVER_URL")
     }
     
-    static var authServerURL: String? {
-        value(for: "AUTH_SERVER_URL")
-    }
+
     
     // MARK: - Supabase Configuration (from AppSecrets)
     
@@ -201,8 +199,7 @@ enum AppConfiguration {
             "MAPBOX_ACCESS_TOKEN",
             "WEATHERBIT_API_KEY",
             "MIXPANEL_TOKEN",
-            "PREDICTION_SERVER_URL",
-            "AUTH_SERVER_URL"
+            "PREDICTION_SERVER_URL"
         ]
         
         logger.info("=== Configuration Status ===")

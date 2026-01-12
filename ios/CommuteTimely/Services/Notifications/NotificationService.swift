@@ -216,32 +216,44 @@ class NotificationService: NSObject, NotificationServiceProtocol {
 
 // MARK: - UNUserNotificationCenterDelegate
 
-extension NotificationService: UNUserNotificationCenterDelegate {
-    func userNotificationCenter(
-        _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification,
-        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
-    ) {
-        // Show notification even when app is in foreground
-        completionHandler([.banner, .sound, .badge])
-    }
-    
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let userInfo = response.notification.request.content.userInfo
+        guard let tripIdString = userInfo["tripId"] as? String else {
+            completionHandler()
+            return
+        }
+        
+        print("[Notifications] Handling action: \(response.actionIdentifier) for trip: \(tripIdString)")
         
         switch response.actionIdentifier {
-        case "SNOOZE_ACTION":
-            handleSnooze(userInfo: userInfo)
-        case "NAVIGATE_ACTION":
-            handleNavigate(userInfo: userInfo)
-        case "START_TRIP_ACTION":
+        case NotificationAction.startTrip.rawValue:
+            // "Yes" -> Start Trip
             handleStartTrip(userInfo: userInfo)
-        case "NOT_NOW_ACTION":
-            handleNotNow(userInfo: userInfo)
+            
+        case NotificationAction.snooze5.rawValue:
+            // "No" -> Snooze 5m
+            handleSnooze(minutes: 5, userInfo: userInfo)
+            
+        case NotificationAction.snooze10.rawValue:
+            // "No" -> Snooze 10m
+            handleSnooze(minutes: 10, userInfo: userInfo)
+            
+        case NotificationAction.abortTrip.rawValue:
+            // "No" -> Abort Trip
+            handleAbortTrip(userInfo: userInfo)
+            
+        case NotificationAction.feedbackPositive.rawValue:
+            // "Arrived on time" -> Yes
+            handleFeedback(isPositive: true, userInfo: userInfo)
+            
+        case NotificationAction.feedbackNegative.rawValue:
+            // "Late" -> No
+            handleFeedback(isPositive: false, userInfo: userInfo)
+            
         default:
             break
         }
@@ -249,19 +261,19 @@ extension NotificationService: UNUserNotificationCenterDelegate {
         completionHandler()
     }
     
-    private func handleSnooze(userInfo: [AnyHashable: Any]) {
-        // Reschedule notification for 5 minutes later
-        print("[Notifications] Snoozing notification")
-    }
-    
-    private func handleNavigate(userInfo: [AnyHashable: Any]) {
-        // Open navigation app
-        print("[Notifications] Opening navigation")
+    private func handleSnooze(minutes: Int, userInfo: [AnyHashable: Any]) {
         guard let tripIdString = userInfo["tripId"] as? String else { return }
+        
+        print("[Notifications] Snoozing trip \(tripIdString) for \(minutes) min")
+        
+        // Post notification for coordinator to handle rescheduling
         NotificationCenter.default.post(
-            name: .openNavigation,
+            name: .snoozeTrip,
             object: nil,
-            userInfo: ["tripId": tripIdString]
+            userInfo: [
+                "tripId": tripIdString,
+                "minutes": minutes
+            ]
         )
     }
     
@@ -276,15 +288,32 @@ extension NotificationService: UNUserNotificationCenterDelegate {
         )
     }
     
-    private func handleNotNow(userInfo: [AnyHashable: Any]) {
-        // User declined to start trip
-        print("[Notifications] User declined trip")
+    private func handleAbortTrip(userInfo: [AnyHashable: Any]) {
+        print("[Notifications] Aborting trip")
         guard let tripIdString = userInfo["tripId"] as? String else { return }
         NotificationCenter.default.post(
-            name: .declinedTripNavigation,
+            name: .abortTrip,
             object: nil,
             userInfo: ["tripId": tripIdString]
         )
+    }
+    
+    private func handleFeedback(isPositive: Bool, userInfo: [AnyHashable: Any]) {
+        print("[Notifications] Received feedback: \(isPositive ? "Positive" : "Negative")")
+        guard let tripIdString = userInfo["tripId"] as? String else { return }
+        
+        // Post notification (optional, maybe just log analytics)
+        NotificationCenter.default.post(
+            name: .tripFeedbackReceived,
+            object: nil,
+            userInfo: [
+                "tripId": tripIdString,
+                "isPositive": isPositive
+            ]
+        )
+        
+        // Show immediate alert response (if app is open) OR schedule a local notification thanks?
+        // Ideally we just specific logic here.
     }
 }
 
@@ -292,7 +321,9 @@ extension NotificationService: UNUserNotificationCenterDelegate {
 
 extension Notification.Name {
     static let startTripNavigation = Notification.Name("startTripNavigation")
-    static let declinedTripNavigation = Notification.Name("declinedTripNavigation")
+    static let snoozeTrip = Notification.Name("snoozeTrip")
+    static let abortTrip = Notification.Name("abortTrip")
+    static let tripFeedbackReceived = Notification.Name("tripFeedbackReceived")
     static let openNavigation = Notification.Name("openNavigation")
 }
 

@@ -12,6 +12,9 @@ import SwiftUI
 struct CommuteTimelyWidgetBundle: WidgetBundle {
     var body: some Widget {
         CommuteTimelyWidget()
+        if #available(iOS 16.1, *) {
+            CommuteLiveActivity()
+        }
     }
 }
 
