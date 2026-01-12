@@ -270,8 +270,7 @@ struct DestinationSearchView: View {
     }
 }
 
-    }
-}
+
 
 struct SuggestionCard: View {
     let suggestion: CalendarEventSuggestion

@@ -221,7 +221,7 @@ class NotificationService: NSObject, NotificationServiceProtocol {
         
         center.setNotificationCategories([departureCategory, reminderCategory, updateCategory])
     }
-}
+
 
 // MARK: - UNUserNotificationCenterDelegate
 
