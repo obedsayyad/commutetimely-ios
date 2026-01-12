@@ -166,7 +166,7 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Transaction Verification
     
-    func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+    nonisolated func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
         switch result {
         case .unverified:
             print("[SubscriptionManager] ⚠️ Transaction verification failed")
@@ -179,8 +179,10 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Transaction Updates Listener
     
     func listenForTransactions() -> Task<Void, Error> {
-        return Task.detached {
+        return Task.detached { [weak self] in
             for await result in Transaction.updates {
+                guard let self = self else { return }
+                
                 do {
                     let transaction = try self.checkVerified(result)
                     
