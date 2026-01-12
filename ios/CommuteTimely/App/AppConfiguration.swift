@@ -79,13 +79,7 @@ enum AppConfiguration {
         AppSecrets.supabaseAnonKey
     }
     
-    // MARK: - RevenueCat Configuration (from AppSecrets)
-    
-    /// RevenueCat public API key
-    /// Configured via AppSecrets.swift
-    static var revenueCatAPIKey: String {
-        AppSecrets.revenueCatPublicAPIKey
-    }
+
     
     // MARK: - Environment Detection
     
@@ -226,11 +220,10 @@ enum AppConfiguration {
             }
         }
         
-        // Log Supabase and RevenueCat configuration from AppSecrets
+        // Log Supabase configuration from AppSecrets
         let supabaseURLMasked = String(supabaseURL.prefix(30)) + "..."
         logger.info("✓ SUPABASE_URL: configured via AppSecrets (value: \(supabaseURLMasked))")
         logger.info("✓ SUPABASE_ANON_KEY: configured via AppSecrets (present)")
-        logger.info("✓ REVENUECAT_API_KEY: configured via AppSecrets (present)")
         
         logger.info("=== End Configuration Status ===")
     }
