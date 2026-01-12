@@ -338,4 +338,13 @@ enum TripOrigin: Codable, Equatable {
         }
         return false
     }
+    
+    var location: Location? {
+        switch self {
+        case .currentLocation:
+            return nil
+        case .customLocation(let location):
+            return location
+        }
+    }
 }

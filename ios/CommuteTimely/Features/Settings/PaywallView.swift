@@ -106,9 +106,9 @@ struct PaywallView: View {
     
     private var featuresView: some View {
         VStack(alignment: .leading, spacing: 16) {
-            FeatureRow(icon: "lock.open.fill", title: "Now", description: "Get full access to all features")
-            FeatureRow(icon: "bell.badge.fill", title: "Early releases", description: "Get notified when early releases are available to test")
-            FeatureRow(icon: "star.fill", title: "Premium support", description: "For your questions and feedback")
+            PaywallFeatureRow(icon: "lock.open.fill", title: "Now", description: "Get full access to all features")
+            PaywallFeatureRow(icon: "bell.badge.fill", title: "Early releases", description: "Get notified when early releases are available to test")
+            PaywallFeatureRow(icon: "star.fill", title: "Premium support", description: "For your questions and feedback")
         }
         .padding()
         .background(Color(.systemGray6))
@@ -302,9 +302,9 @@ struct ProductCard: View {
     }
 }
 
-// MARK: - Feature Row
+// MARK: - Paywall Feature Row
 
-struct FeatureRow: View {
+struct PaywallFeatureRow: View {
     let icon: String
     let title: String
     let description: String
