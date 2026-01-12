@@ -38,17 +38,24 @@ struct TripPlannerView: View {
                         case .destination:
                             DestinationSearchView(
                                 viewModel: viewModel,
-                                onNext: { currentStep = .schedule }
+                                onNext: {
+                                    HapticManager.shared.tap()
+                                    withAnimation { currentStep = .schedule }
+                                }
                             )
                         case .schedule:
                             TripScheduleView(
                                 viewModel: viewModel,
-                                onNext: { currentStep = .preview }
+                                onNext: {
+                                    HapticManager.shared.tap()
+                                    withAnimation { currentStep = .preview }
+                                }
                             )
                         case .preview:
                             TripPreviewView(
                                 viewModel: viewModel,
                                 onSave: {
+                                    HapticManager.shared.successConfirm()
                                     Task {
                                         await viewModel.saveTrip()
                                         // Check if paywall was shown - if not, dismiss
@@ -131,6 +138,10 @@ class TripPlannerViewModel: BaseViewModel {
     private let analyticsService: AnalyticsServiceProtocol
     private let leaveTimeScheduler: LeaveTimeSchedulerProtocol
     private let locationService: LocationServiceProtocol
+    private let calendarService: CalendarServiceProtocol
+    
+    @Published var calendarSuggestions: [CalendarEventSuggestion] = []
+    @Published var isLoadingSuggestions = false
     
     @Published var subscriptionStatus: SubscriptionStatus = SubscriptionStatus()
     @Published var showPaywall = false
@@ -144,7 +155,8 @@ class TripPlannerViewModel: BaseViewModel {
         subscriptionService: SubscriptionServiceProtocol,
         analyticsService: AnalyticsServiceProtocol,
         leaveTimeScheduler: LeaveTimeSchedulerProtocol,
-        locationService: LocationServiceProtocol
+        locationService: LocationServiceProtocol,
+        calendarService: CalendarServiceProtocol
     ) {
         self.mapboxService = mapboxService
         self.searchService = searchService
@@ -155,6 +167,7 @@ class TripPlannerViewModel: BaseViewModel {
         self.analyticsService = analyticsService
         self.leaveTimeScheduler = leaveTimeScheduler
         self.locationService = locationService
+        self.calendarService = calendarService
         super.init()
         
         // Subscribe to subscription status updates
@@ -163,6 +176,48 @@ class TripPlannerViewModel: BaseViewModel {
                 self?.subscriptionStatus = status
             }
             .store(in: &cancellables)
+            
+        // Initial fetch of calendar suggestions
+        Task {
+            await fetchCalendarSuggestions()
+        }
+    }
+    
+    func fetchCalendarSuggestions() async {
+        isLoadingSuggestions = true
+        defer { isLoadingSuggestions = false }
+        
+        do {
+            let granted = try await calendarService.requestAccess()
+            if granted {
+                self.calendarSuggestions = try await calendarService.fetchUpcomingEvents(days: 7)
+            }
+        } catch {
+            print("[TripPlanner] Failed to fetch calendar events: \(error.localizedDescription)")
+        }
+    }
+    
+    func useSuggestion(_ suggestion: CalendarEventSuggestion) {
+        self.selectedDestination = Location(
+            coordinate: Coordinate(latitude: 0, longitude: 0), // Will be geocoded if needed, or treated as search query
+            address: suggestion.location ?? "",
+            placeName: suggestion.title
+        )
+        self.arrivalTime = suggestion.startDate
+        
+        // If location is string only, we should ideally trigger a search or geocode
+        if let locationQuery = suggestion.location, !locationQuery.isEmpty {
+            Task {
+                do {
+                    let locations = try await searchDestinations(query: locationQuery)
+                    if let firstMatch = locations.first {
+                        self.selectedDestination = firstMatch
+                    }
+                } catch {
+                    print("[TripPlanner] Failed to geocode suggestion location: \(error.localizedDescription)")
+                }
+            }
+        }
     }
     
     func searchDestinations(query: String, userCoordinate: Coordinate? = nil) async throws -> [Location] {

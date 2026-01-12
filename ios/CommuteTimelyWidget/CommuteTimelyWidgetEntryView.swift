@@ -32,51 +32,57 @@ struct SmallWidgetView: View {
     var entry: TripTimelineEntry
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let trip = entry.nextTrip {
-                HStack {
-                    Image(systemName: "mappin.circle.fill")
-                        .foregroundColor(.blue)
-                        .font(.title2)
+        ZStack {
+            LinearGradient(
+                colors: [Color.blue.opacity(0.1), Color.white],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            VStack(alignment: .leading, spacing: 8) {
+                if let trip = entry.nextTrip {
+                    HStack {
+                        Image(systemName: "car.fill")
+                            .foregroundColor(.blue)
+                            .font(.system(size: 16, weight: .bold))
+                        Spacer()
+                        if let travelTime = trip.travelTimeMinutes {
+                            Text("\(travelTime)m")
+                                .font(.system(size: 12, weight: .heavy))
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Next Trip")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                        
+                        Text(trip.destinationName)
+                            .font(.system(size: 15, weight: .bold))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                    }
+                    
                     Spacer()
-                }
-                
-                Text(trip.destinationName)
-                    .font(.headline)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
-                
-                if let leaveTime = trip.leaveTime {
-                    Text(timeUntilLeave(leaveTime))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    
+                    if let leaveTime = trip.leaveTime {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("Leave at")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.secondary)
+                            Text(formatTime(leaveTime))
+                                .font(.system(size: 18, weight: .heavy))
+                                .foregroundColor(.blue)
+                        }
+                    }
                 } else {
-                    Text(formatTime(trip.arrivalTime))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            } else if let error = entry.error {
-                VStack {
-                    Image(systemName: "exclamationmark.triangle")
-                        .foregroundColor(.orange)
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-            } else {
-                VStack {
-                    Image(systemName: "map")
-                        .foregroundColor(.secondary)
-                    Text("No upcoming trips")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    EmptyStateView(message: entry.error ?? "No trips", useSmallLayout: true)
                 }
             }
-            
-            Spacer()
+            .padding(12)
         }
-        .padding()
     }
     
     private func timeUntilLeave(_ leaveTime: Date) -> String {
@@ -108,67 +114,76 @@ struct MediumWidgetView: View {
     var entry: TripTimelineEntry
     
     var body: some View {
-        HStack(spacing: 16) {
-            if let trip = entry.nextTrip {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "mappin.circle.fill")
-                            .foregroundColor(.blue)
-                            .font(.title2)
-                        Text(trip.destinationName)
-                            .font(.headline)
-                            .lineLimit(1)
-                    }
-                    
-                    if let leaveTime = trip.leaveTime {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Leave by")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text(formatTime(leaveTime))
-                                .font(.title3)
-                                .fontWeight(.semibold)
+        ZStack {
+            LinearGradient(
+                colors: [Color.blue.opacity(0.12), Color.white],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            HStack(spacing: 0) {
+                if let trip = entry.nextTrip {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "mappin.circle.fill")
+                                .foregroundColor(.blue)
+                            Text(trip.destinationName)
+                                .font(.system(size: 16, weight: .bold))
+                                .lineLimit(1)
+                        }
+                        
+                        HStack(spacing: 20) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("DEPARTURE")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundColor(.secondary)
+                                if let leaveTime = trip.leaveTime {
+                                    Text(formatTime(leaveTime))
+                                        .font(.system(size: 20, weight: .heavy))
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("ARRIVAL")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundColor(.secondary)
+                                Text(formatTime(trip.arrivalTime))
+                                    .font(.system(size: 20, weight: .heavy))
+                                    .foregroundColor(.primary)
+                            }
                         }
                     }
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Arrive by")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(formatTime(trip.arrivalTime))
-                            .font(.subheadline)
-                    }
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 8) {
-                    if let travelTime = trip.travelTimeMinutes {
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text("\(travelTime) min")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                            Text("travel time")
-                                .font(.caption)
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 4) {
+                        if let travelTime = trip.travelTimeMinutes {
+                            Text("\(travelTime)m")
+                                .font(.system(size: 28, weight: .black))
+                                .foregroundColor(.blue)
+                            Text("Travel Time")
+                                .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+                        }
+                        
+                        if let leaveTime = trip.leaveTime {
+                            Text(timeUntilLeave(leaveTime))
+                                .font(.system(size: 11, weight: .bold))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.blue.foregroundColor(.white))
+                                .cornerRadius(6)
+                                .padding(.top, 4)
                         }
                     }
-                    
-                    if let leaveTime = trip.leaveTime {
-                        Text(timeUntilLeave(leaveTime))
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(8)
-                    }
+                } else {
+                    EmptyStateView(message: entry.error ?? "Plan your next move")
                 }
-            } else {
-                EmptyStateView(message: entry.error ?? "No upcoming trips")
             }
+            .padding(16)
         }
-        .padding()
     }
     
     private func timeUntilLeave(_ leaveTime: Date) -> String {
@@ -316,14 +331,15 @@ struct LargeWidgetView: View {
 
 struct EmptyStateView: View {
     let message: String
+    var useSmallLayout: Bool = false
     
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "map")
-                .font(.largeTitle)
-                .foregroundColor(.secondary)
+        VStack(spacing: useSmallLayout ? 4 : 8) {
+            Image(systemName: "map.fill")
+                .font(useSmallLayout ? .title2 : .largeTitle)
+                .foregroundColor(.blue.opacity(0.3))
             Text(message)
-                .font(.subheadline)
+                .font(.system(size: useSmallLayout ? 12 : 14, weight: .bold))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }

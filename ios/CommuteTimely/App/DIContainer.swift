@@ -30,6 +30,7 @@ protocol ServiceContainer {
     var themeManager: ThemeManager { get }
     var personalizedNotificationScheduler: PersonalizedNotificationSchedulerProtocol { get }
     var commuteActivityManager: CommuteActivityManagerProtocol { get }
+    var calendarService: CalendarServiceProtocol { get }
     
     // MARK: - Supabase Services
     
@@ -261,6 +262,10 @@ class DIContainer: ServiceContainer {
         CommuteActivityManager()
     }()
     
+    lazy var calendarService: CalendarServiceProtocol = {
+        CalendarService()
+    }()
+    
     // MARK: - Supabase Services
     
     lazy var supabaseAuthService: SupabaseAuthServiceProtocol = {
@@ -370,7 +375,8 @@ class DIContainer: ServiceContainer {
             subscriptionService: subscriptionService,
             analyticsService: analyticsService,
             leaveTimeScheduler: leaveTimeScheduler,
-            locationService: locationService
+            locationService: locationService,
+            calendarService: calendarService
         )
     }
     
@@ -442,6 +448,7 @@ class MockServiceContainer: ServiceContainer {
 
     var themeManager: ThemeManager = ThemeManager()
     var personalizedNotificationScheduler: PersonalizedNotificationSchedulerProtocol = MockPersonalizedNotificationScheduler()
+    var calendarService: CalendarServiceProtocol = MockCalendarService()
     
     // MARK: - Supabase Services (Mocks)
     

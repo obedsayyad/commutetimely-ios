@@ -88,6 +88,52 @@ enum DesignTokens {
         }
     }
     
+    // MARK: - Materials & Gradients (Premium UI)
+    
+    enum Materials {
+        static let ultraThin = Material.ultraThin
+        static let thin = Material.thin
+        static let regular = Material.regular
+        static let thick = Material.thick
+        static let ultraThick = Material.ultraThick
+    }
+    
+    enum Gradients {
+        static var primaryMesh: LinearGradient {
+            LinearGradient(
+                colors: [
+                    Color.blue.opacity(0.3),
+                    Color.purple.opacity(0.2),
+                    Color.clear
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        
+        static var cardGlass: LinearGradient {
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.7),
+                    Color.white.opacity(0.3)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        
+        static var cardGlassDark: LinearGradient {
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.3),
+                    Color.black.opacity(0.1)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+    
     // MARK: - Typography
     
     enum Typography {
@@ -240,6 +286,22 @@ extension View {
                 radius: DesignTokens.Shadow.large.radius,
                 x: DesignTokens.Shadow.large.x,
                 y: DesignTokens.Shadow.large.y
+            )
+    }
+    
+    func glassStyle() -> some View {
+        self
+            .background(Material.ultraThin)
+            .cornerRadius(DesignTokens.CornerRadius.lg)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
+            .shadow(
+                color: Color.black.opacity(0.1),
+                radius: 10,
+                x: 0,
+                y: 5
             )
     }
     

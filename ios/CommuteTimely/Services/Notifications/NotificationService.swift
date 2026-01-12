@@ -31,7 +31,7 @@ class NotificationService: NSObject, NotificationServiceProtocol {
     }
     
     func requestAuthorization() async throws -> Bool {
-        let options: UNAuthorizationOptions = [.alert, .badge, .sound, .providesAppNotificationSettings]
+        let options: UNAuthorizationOptions = [.alert, .badge, .sound, .criticalAlert, .providesAppNotificationSettings]
         return try await center.requestAuthorization(options: options)
     }
     
@@ -135,7 +135,16 @@ class NotificationService: NSObject, NotificationServiceProtocol {
         content.title = messages.randomElement() ?? messages[0]
         
         content.body = "\(prediction.explanation). Confidence: \(prediction.confidencePercentage)%"
-        content.sound = trip.notificationSettings.soundEnabled ? .default : nil
+        let prefs = DIContainer.shared.userPreferencesService.getCachedPreferences()
+        
+        if prefs.notificationSettings.criticalAlertsEnabled {
+            content.interruptionLevel = .critical
+            content.sound = .defaultCritical
+        } else {
+            content.interruptionLevel = .active
+            content.sound = trip.notificationSettings.soundEnabled ? .default : nil
+        }
+        
         content.categoryIdentifier = "TRIP_DEPARTURE"
         content.userInfo = [
             "tripId": trip.id.uuidString,

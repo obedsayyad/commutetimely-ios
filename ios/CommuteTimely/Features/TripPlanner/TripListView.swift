@@ -17,7 +17,7 @@ struct TripListView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                DesignTokens.Colors.background
+                DesignTokens.Gradients.primaryMesh
                     .ignoresSafeArea()
                 
                 if viewModel.trips.isEmpty {

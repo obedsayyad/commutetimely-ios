@@ -99,14 +99,39 @@ struct TripListCell: View {
                 }
             }
             .padding(DesignTokens.Spacing.md)
-            .background(DesignTokens.Colors.surface)
-            .cornerRadius(DesignTokens.CornerRadius.md)
+            .padding(DesignTokens.Spacing.md)
+            .glassStyle()
         }
         .buttonStyle(PlainButtonStyle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Trip to \(trip.destination.displayName), arrive by \(formattedArrivalTime)")
         .accessibilityHint("Double tap to edit trip")
         .accessibilityAddTraits(.isButton)
+        .contextMenu {
+            Button {
+                onTap?()
+            } label: {
+                Label("Edit Trip", systemImage: "pencil")
+            }
+            
+            Button {
+                if let onToggle = onToggle {
+                    onToggle(!trip.isActive)
+                }
+            } label: {
+                if trip.isActive {
+                    Label("Deactivate", systemImage: "bell.slash")
+                } else {
+                    Label("Activate", systemImage: "bell")
+                }
+            }
+            
+            Button(role: .destructive) {
+                onDelete?()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
     
     private var formattedArrivalTime: String {

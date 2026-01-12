@@ -90,6 +90,38 @@ struct DestinationSearchView: View {
             .padding(.top)
             .padding(.bottom, DesignTokens.Spacing.sm)
             
+            // Calendar Suggestions (Premium Feature)
+            if !isSelectingOrigin && !viewModel.calendarSuggestions.isEmpty {
+                VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                    HStack {
+                        Text("Suggested from Calendar")
+                            .font(DesignTokens.Typography.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(DesignTokens.Colors.textSecondary)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "calendar")
+                            .foregroundColor(DesignTokens.Colors.primaryFallback())
+                            .font(.system(size: 12))
+                    }
+                    .padding(.horizontal)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: DesignTokens.Spacing.sm) {
+                            ForEach(viewModel.calendarSuggestions) { suggestion in
+                                SuggestionCard(suggestion: suggestion) {
+                                    viewModel.useSuggestion(suggestion)
+                                    onNext()
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, DesignTokens.Spacing.md)
+                    }
+                }
+            }
+            
             Divider()
             
             // Search results or states
@@ -235,6 +267,57 @@ struct DestinationSearchView: View {
         }
         
         isSearching = false
+    }
+}
+
+    }
+}
+
+struct SuggestionCard: View {
+    let suggestion: CalendarEventSuggestion
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(suggestion.title)
+                    .font(DesignTokens.Typography.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
+                    .lineLimit(1)
+                
+                HStack(spacing: 4) {
+                    Image(systemName: "clock")
+                        .font(.system(size: 10))
+                    Text(formatTime(suggestion.startDate))
+                        .font(DesignTokens.Typography.caption)
+                }
+                .foregroundColor(DesignTokens.Colors.textSecondary)
+                
+                if let loc = suggestion.location {
+                    Text(loc)
+                        .font(DesignTokens.Typography.caption)
+                        .foregroundColor(DesignTokens.Colors.primaryFallback())
+                        .lineLimit(1)
+                }
+            }
+            .padding(DesignTokens.Spacing.md)
+            .frame(width: 160, alignment: .leading)
+            .background(DesignTokens.Colors.surface)
+            .cornerRadius(DesignTokens.CornerRadius.md)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md)
+                    .stroke(DesignTokens.Colors.primaryFallback().opacity(0.2), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
 
