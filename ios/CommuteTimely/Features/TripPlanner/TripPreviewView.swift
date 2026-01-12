@@ -195,6 +195,21 @@ struct TripPreviewView: View {
 
 // MARK: - Standout Visuals
 
+struct InfoPill: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        Label(text, systemImage: icon)
+            .font(DesignTokens.Typography.caption)
+            .foregroundColor(DesignTokens.Colors.textSecondary)
+            .padding(.horizontal, DesignTokens.Spacing.sm)
+            .padding(.vertical, DesignTokens.Spacing.xs)
+            .background(DesignTokens.Colors.background)
+            .cornerRadius(DesignTokens.CornerRadius.sm)
+    }
+}
+
 struct WeatherImpactBadge: View {
     let minutes: Int
     
