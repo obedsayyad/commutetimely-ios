@@ -43,12 +43,12 @@ struct AppSecrets {
     /// Mapbox Access Token
     /// Get from: https://account.mapbox.com/access-tokens/
     /// Required for traffic data and routing
-    static let mapboxAccessToken = "pk.eyJ1Ijoib2JlZHNheXlhZCIsImEiOiJjbTUzcW5yN2QwMm9nMmtvbGZ1a2g1eG1wIn0.A2w2l5W4q7t6Y8r9u1i2o3"
+    static let mapboxAccessToken = "pk.eyJ1IjoiY29tbXV0ZXRpbWVseSIsImEiOiJjbWtiNjE3Z28wMGZvM2tzZW5hbGpxZGdhIn0.aK7yYCh9spw8nELwet9MyA"
     
     // MARK: - Weatherbit Configuration
     
     /// Weatherbit API Key
     /// Get from: https://www.weatherbit.io/account/dashboard
     /// Required for weather analysis
-    static let weatherbitAPIKey = "d8f9c2b3a4e5f6g7h8i9j0k1l2m3n4o5"
+    static let weatherbitAPIKey = "836afe5ccf9c46e1bc2fa3a894f676b3"
 }
