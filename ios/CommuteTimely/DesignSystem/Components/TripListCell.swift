@@ -47,12 +47,10 @@ struct TripListCell: View {
                         .lineLimit(1)
                     
                     HStack(spacing: DesignTokens.Spacing.sm) {
-                        Label(
-                            formattedArrivalTime,
-                            systemImage: "clock.fill"
-                        )
-                        .font(DesignTokens.Typography.caption)
-                        .foregroundColor(DesignTokens.Colors.textSecondary)
+                        Label(formattedArrivalTime, systemImage: "clock.fill")
+                            .font(DesignTokens.Typography.caption)
+                            .foregroundColor(DesignTokens.Colors.textSecondary)
+                            .fixedSize(horizontal: true, vertical: false)
                         
                         if !trip.repeatDays.isEmpty {
                             Text("•")
@@ -61,6 +59,7 @@ struct TripListCell: View {
                             Text(repeatDaysText)
                                 .font(DesignTokens.Typography.caption)
                                 .foregroundColor(DesignTokens.Colors.textSecondary)
+                                .lineLimit(1)
                         }
                     }
                     
@@ -70,8 +69,9 @@ struct TripListCell: View {
                             .foregroundColor(DesignTokens.Colors.textTertiary)
                     }
                 }
+                .layoutPriority(1)
                 
-                Spacer()
+                Spacer(minLength: DesignTokens.Spacing.sm)
                 
                 // Delete Button
                 if let onDelete = onDelete {
@@ -99,8 +99,12 @@ struct TripListCell: View {
                 }
             }
             .padding(DesignTokens.Spacing.md)
-            .padding(DesignTokens.Spacing.md)
-            .glassStyle()
+            .background(DesignTokens.Colors.surface.opacity(0.8))
+            .cornerRadius(DesignTokens.CornerRadius.lg)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg)
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
         }
         .buttonStyle(PlainButtonStyle())
         .accessibilityElement(children: .combine)
