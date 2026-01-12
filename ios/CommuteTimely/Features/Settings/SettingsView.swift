@@ -27,7 +27,9 @@ struct SettingsView: View {
                     accountSection
                     
                     // Subscription Section
-                    subscriptionSection
+                    if authManager.isAuthenticated {
+                        subscriptionSection
+                    }
                     
                     // Notifications Section
                     notificationsSection
