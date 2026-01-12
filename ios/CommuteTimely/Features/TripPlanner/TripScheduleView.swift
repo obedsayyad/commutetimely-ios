@@ -119,6 +119,7 @@ struct TripScheduleView: View {
         .sheet(isPresented: $showingLocationPicker) {
             DestinationSearchView(
                 viewModel: viewModel,
+                onNext: {},
                 isSelectingOrigin: true,
                 onDismiss: {
                     showingLocationPicker = false
