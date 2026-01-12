@@ -66,7 +66,7 @@ final class PersonalizedNotificationScheduler: PersonalizedNotificationScheduler
         
         // Get current preferences
         var preferences = await userPreferencesService.loadPreferences()
-        let dayIndex = preferences.notificationSettings.personalizedNotificationDayIndex
+
         
         // Create calendar with user's timezone
         var calendar = Calendar.current

@@ -133,7 +133,7 @@ struct DestinationSearchView: View {
                             LocationResultCell(location: location) {
                                 // Select destination/origin and auto-advance
                                 if isSelectingOrigin {
-                                    viewModel.selectedOrigin = .custom(location)
+                                    viewModel.selectedOrigin = .customLocation(location)
                                 } else {
                                     viewModel.selectedDestination = location
                                 }
