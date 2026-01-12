@@ -1,0 +1,173 @@
+{
+  "identifier" : "CommuteTimely",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "6738475829",
+      "localizations" : [
+        {
+          "description" : "Monthly subscription to CommuteTimely Pro",
+          "displayName" : "CommuteTimely Pro Monthly",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.develentcorp.commutetimely.pro.monthly",
+      "referenceName" : "CommuteTimely Pro Monthly",
+      "type" : "RecurringSubscription"
+    },
+    {
+      "displayPrice" : "69.99",
+      "familyShareable" : false,
+      "internalID" : "6738475830",
+      "localizations" : [
+        {
+          "description" : "Yearly subscription to CommuteTimely Pro",
+          "displayName" : "CommuteTimely Pro Yearly",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.develentcorp.commutetimely.pro.yearly",
+      "referenceName" : "CommuteTimely Pro Yearly",
+      "type" : "RecurringSubscription"
+    },
+    {
+      "displayPrice" : "119.99",
+      "familyShareable" : false,
+      "internalID" : "6738475831",
+      "localizations" : [
+        {
+          "description" : "Lifetime access to CommuteTimely Pro",
+          "displayName" : "CommuteTimely Pro Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.develentcorp.commutetimely.pro.lifetime",
+      "referenceName" : "CommuteTimely Pro Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6738475828",
+    "_developerTeamID" : "YOUR_TEAM_ID",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 757935286.45899999,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21543210",
+      "localizations" : [
+
+      ],
+      "name" : "CommuteTimely Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6738475829",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Monthly subscription to CommuteTimely Pro",
+              "displayName" : "CommuteTimely Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.develentcorp.commutetimely.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "CommuteTimely Pro Monthly",
+          "subscriptionGroupID" : "21543210",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "69.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6738475830",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Yearly subscription to CommuteTimely Pro",
+              "displayName" : "CommuteTimely Pro Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.develentcorp.commutetimely.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "CommuteTimely Pro Yearly",
+          "subscriptionGroupID" : "21543210",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

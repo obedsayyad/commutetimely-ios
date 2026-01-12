@@ -10,6 +10,7 @@ import SwiftUI
 struct TripScheduleView: View {
     @ObservedObject var viewModel: TripPlannerViewModel
     let onNext: () -> Void
+    @State private var showingLocationPicker = false
     
     var body: some View {
         ScrollView {
@@ -42,9 +43,7 @@ struct TripScheduleView: View {
                             subtitle: "Set a specific starting point",
                             isSelected: !viewModel.selectedOrigin.isCurrentLocation
                         ) {
-                            // TODO: Show location picker
-                            // For now, just toggle back to current location
-                            // This will be enhanced when we add the location picker
+                            showingLocationPicker = true
                         }
                     }
                 }
@@ -116,6 +115,15 @@ struct TripScheduleView: View {
                 .padding(.top, DesignTokens.Spacing.lg)
             }
             .padding()
+        }
+        .sheet(isPresented: $showingLocationPicker) {
+            DestinationSearchView(
+                viewModel: viewModel,
+                isSelectingOrigin: true,
+                onDismiss: {
+                    showingLocationPicker = false
+                }
+            )
         }
     }
     

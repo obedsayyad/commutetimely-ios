@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import RevenueCat
 
 struct ProfileAuthView: View {
     @ObservedObject var authManager: AuthSessionController
@@ -41,8 +40,6 @@ struct ProfileAuthView: View {
                         Task {
                             // Sign out from Supabase
                             _ = try? await authManager.signOut()
-                            // Sign out from RevenueCat (handled in RootView, but ensure it happens)
-                            _ = try? await Purchases.shared.logOut()
                         }
                     }
                 } message: {

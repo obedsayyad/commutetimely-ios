@@ -8,7 +8,6 @@
 import SwiftUI
 import Combine
 import Supabase
-import RevenueCat
 import OSLog
 
 @main
@@ -61,9 +60,6 @@ struct CommuteTimelyApp: App {
         serviceContainer.configureSupabase(client: client)
         self.services = serviceContainer
         
-        // Configure RevenueCat
-        Purchases.configure(withAPIKey: AppSecrets.revenueCatPublicAPIKey)
-        
         // Initialize coordinator with services
         _coordinator = StateObject(wrappedValue: AppCoordinator(services: serviceContainer))
         
@@ -80,7 +76,6 @@ struct CommuteTimelyApp: App {
         
         #if DEBUG
         print("[App] ✅ Supabase client initialized")
-        print("[App] ✅ RevenueCat configured")
         print("[App] ✅ Services initialized")
         #endif
     }
@@ -222,14 +217,6 @@ struct RootView: View {
     private func handleAuthStateChange(_ state: AuthSessionState) async {
         switch state {
         case .signedOut:
-            // Log out RevenueCat
-            do {
-                let _ = try await Purchases.shared.logOut()
-                print("[App] RevenueCat logged out")
-            } catch {
-                print("[App] Failed to log out RevenueCat: \(error.localizedDescription)")
-            }
-            
             // Cancel all personalized notifications on sign out
             await personalizedNotificationScheduler.cancelAllPersonalizedNotifications()
             
@@ -240,14 +227,6 @@ struct RootView: View {
             try? await preferencesService.updatePreferences(preferences)
             
         case .signedIn(let user):
-            // Log in RevenueCat with Supabase user ID
-            do {
-                let (_, _) = try await Purchases.shared.logIn(user.id)
-                print("[App] RevenueCat logged in with user ID: \(user.id)")
-            } catch {
-                print("[App] Failed to log in RevenueCat: \(error.localizedDescription)")
-            }
-            
             // Ensure user profile exists in Supabase
             let userProfileService = DIContainer.shared.userProfileService
             do {

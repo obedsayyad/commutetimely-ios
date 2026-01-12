@@ -2,41 +2,65 @@
 // PaywallView.swift
 // CommuteTimely
 //
-// RevenueCat-based paywall for subscription purchases
+// Native StoreKit 2 paywall implementation
 //
 
 import SwiftUI
-import RevenueCat
-import RevenueCatUI
+import StoreKit
 
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var offerings: Offerings?
-    @State private var isLoading = true
+    @StateObject private var subscriptionManager = SubscriptionManager()
+    @State private var isPurchasing = false
     @State private var errorMessage: String?
+    @State private var showError = false
     
     let analyticsService: AnalyticsServiceProtocol
-    let subscriptionService: SubscriptionServiceProtocol
     
-    init(
-        analyticsService: AnalyticsServiceProtocol = DIContainer.shared.analyticsService,
-        subscriptionService: SubscriptionServiceProtocol = DIContainer.shared.subscriptionService
-    ) {
+    init(analyticsService: AnalyticsServiceProtocol = DIContainer.shared.analyticsService) {
         self.analyticsService = analyticsService
-        self.subscriptionService = subscriptionService
     }
     
     var body: some View {
         NavigationView {
-            Group {
-                if isLoading {
-                    loadingView
-                } else if let error = errorMessage {
-                    errorView(error: error)
-                } else if let offering = offerings?.current {
-                    paywallView(offering: offering)
-                } else {
-                    noOfferingView
+            ZStack {
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Header
+                        headerView
+                        
+                        // Features
+                        featuresView
+                        
+                        // Products
+                        if subscriptionManager.availableProducts.isEmpty {
+                            loadingView
+                        } else {
+                            productsView
+                        }
+                        
+                        // Restore button
+                        restoreButton
+                        
+                        // Legal footer
+                        legalFooter
+                    }
+                    .padding()
+                }
+                
+                // Loading overlay
+                if isPurchasing {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: 16) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .tint(.white)
+                        Text("Processing...")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                    }
                 }
             }
             .navigationTitle("Upgrade to Pro")
@@ -49,244 +73,255 @@ struct PaywallView: View {
                 }
             }
         }
-        .task {
-            await loadOfferings()
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "An error occurred")
         }
         .onAppear {
             analyticsService.trackScreen("Paywall")
         }
     }
     
-    // MARK: - Subviews
+    // MARK: - Header
+    
+    private var headerView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "clock.badge.checkmark.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.blue)
+            
+            Text("CommuteTimely Pro")
+                .font(.title.bold())
+            
+            Text("Get personalized insights to understand your commute 3x better.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.top)
+    }
+    
+    // MARK: - Features
+    
+    private var featuresView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            FeatureRow(icon: "lock.open.fill", title: "Now", description: "Get full access to all features")
+            FeatureRow(icon: "bell.badge.fill", title: "Early releases", description: "Get notified when early releases are available to test")
+            FeatureRow(icon: "star.fill", title: "Premium support", description: "For your questions and feedback")
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+    
+    // MARK: - Products
+    
+    private var productsView: some View {
+        VStack(spacing: 12) {
+            ForEach(subscriptionManager.availableProducts, id: \.id) { product in
+                ProductCard(
+                    product: product,
+                    isPurchasing: isPurchasing,
+                    isSelected: isRecommended(product)
+                ) {
+                    purchaseProduct(product)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Restore Button
+    
+    private var restoreButton: some View {
+        Button {
+            restorePurchases()
+        } label: {
+            Text("Restore Purchases")
+                .font(.callout)
+                .foregroundColor(.blue)
+        }
+        .disabled(isPurchasing)
+    }
+    
+    // MARK: - Legal Footer
+    
+    private var legalFooter: some View {
+        VStack(spacing: 8) {
+            Text("By subscribing, you agree to our Terms of Use and Privacy Policy")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            HStack(spacing: 16) {
+                Link("Privacy Policy", destination: URL(string: AppConfiguration.privacyPolicyURL)!)
+                Text("•")
+                Link("Terms of Use", destination: URL(string: AppConfiguration.termsOfUseURL)!)
+            }
+            .font(.caption)
+            .foregroundColor(.blue)
+        }
+        .padding(.top, 8)
+    }
+    
+    // MARK: - Loading View
     
     private var loadingView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             ProgressView()
-                .scaleEffect(1.5)
             Text("Loading subscription options...")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(height: 200)
     }
     
-    private func errorView(error: String) -> some View {
-        VStack(spacing: 24) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 60))
-                .foregroundColor(.orange)
-            
-            VStack(spacing: 12) {
-                Text("Unable to Load Subscriptions")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                Text(error)
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
-            
-            VStack(spacing: 12) {
-                Button {
-                    Task {
-                        await loadOfferings()
-                    }
-                } label: {
-                    Label("Try Again", systemImage: "arrow.clockwise")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                
-                Button {
-                    dismiss()
-                } label: {
-                    Text("Close")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-            }
-            .padding(.horizontal)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
+    // MARK: - Actions
     
-    private var noOfferingView: some View {
-        VStack(spacing: 24) {
-            Image(systemName: "cart.badge.questionmark")
-                .font(.system(size: 60))
-                .foregroundColor(.orange)
+    private func purchaseProduct(_ product: Product) {
+        Task {
+            isPurchasing = true
             
-            VStack(spacing: 12) {
-                Text("No Subscription Options")
-                    .font(.title2)
-                    .fontWeight(.bold)
+            do {
+                try await subscriptionManager.purchase(product)
                 
-                Text("Subscription options are not currently available. Please try again later.")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
-            
-            Button {
-                dismiss()
-            } label: {
-                Text("Close")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-            .padding(.horizontal)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    private func paywallView(offering: Offering) -> some View {
-        RevenueCatUI.PaywallView(offering: offering, displayCloseButton: false)
-            .tint(Color(red: 59/255, green: 130/255, blue: 246/255)) // Blue accent color (#3B82F6)
-            .onPurchaseCompleted { customerInfo in
-                print("[PaywallView] ✅ Purchase completed successfully")
+                // Track purchase
                 analyticsService.trackEvent(.subscriptionStarted(tier: "premium"))
                 
-                // Refresh subscription status to update all UI immediately
-                Task {
-                    await subscriptionService.refreshSubscriptionStatus()
-                }
+                // Dismiss on success
                 dismiss()
+            } catch {
+                errorMessage = error.localizedDescription
+                showError = true
             }
-            .onRestoreCompleted { customerInfo in
-                print("[PaywallView] ✅ Restore completed")
-                
-                // Refresh subscription status
-                Task {
-                    await subscriptionService.refreshSubscriptionStatus()
-                }
-                
-                // Check if user now has entitlements
-                if !customerInfo.entitlements.active.isEmpty {
-                    print("[PaywallView] ✅ Active entitlements found after restore")
-                    dismiss()
-                } else {
-                    print("[PaywallView] ⚠️ No active entitlements found after restore")
-                }
-            }
-            .onPurchaseCancelled {
-                print("[PaywallView] ℹ️ Purchase cancelled by user")
-            }
+            
+            isPurchasing = false
+        }
     }
     
-    // MARK: - Data Loading
+    private func restorePurchases() {
+        Task {
+            isPurchasing = true
+            
+            do {
+                try await subscriptionManager.restorePurchases()
+                
+                if subscriptionManager.subscriptionStatus.isSubscribed {
+                    dismiss()
+                } else {
+                    errorMessage = "No previous purchases found"
+                    showError = true
+                }
+            } catch {
+                errorMessage = error.localizedDescription
+                showError = true
+            }
+            
+            isPurchasing = false
+        }
+    }
     
-    private func loadOfferings() async {
-        isLoading = true
-        errorMessage = nil
-        
-        // Log device information for debugging
-        let deviceModel = UIDevice.current.model
-        let systemVersion = UIDevice.current.systemVersion
-        print("[PaywallView] 🔄 Loading offerings...")
-        print("[PaywallView] 📱 Device: \(deviceModel), iOS: \(systemVersion)")
-        
-        // Invalidate cache to force-refresh paywall data from RevenueCat
-        Purchases.shared.invalidateCustomerInfoCache()
-        print("[PaywallView] 🗑️ Invalidated customer info cache")
-        
-        do {
-            offerings = try await subscriptionService.getCurrentOfferings()
-            
-            if let current = offerings?.current {
-                print("[PaywallView] ✅ Loaded current offering: \(current.identifier)")
-                print("[PaywallView] 📦 Available packages: \(current.availablePackages.count)")
-                
-                for package in current.availablePackages {
-                    print("[PaywallView]   - \(package.identifier): \(package.storeProduct.localizedTitle) (\(package.storeProduct.localizedPriceString))")
+    private func isRecommended(_ product: Product) -> Bool {
+        return product.id.contains("yearly")
+    }
+}
+
+// MARK: - Product Card
+
+struct ProductCard: View {
+    let product: Product
+    let isPurchasing: Bool
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(productTitle)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        
+                        if isSelected {
+                            Text("RECOMMENDED")
+                                .font(.caption2.bold())
+                                .foregroundColor(.blue)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.white)
+                                .cornerRadius(4)
+                        }
+                    }
+                    
+                    if let description = productDescription {
+                        Text(description)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.9))
+                    }
                 }
-            } else {
-                print("[PaywallView] ⚠️ No current offering found")
-                errorMessage = """
-                No subscription options are currently configured.
                 
-                Please ensure:
-                • RevenueCat Dashboard has an offering marked as "Current"
-                • Products are attached to the offering
-                • App Store Connect products are properly configured
+                Spacer()
                 
-                Device: \(deviceModel) (\(systemVersion))
-                """
+                Text(product.displayPrice)
+                    .font(.title3.bold())
+                    .foregroundColor(.white)
             }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.blue)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(isSelected ? Color.white : Color.blue, lineWidth: isSelected ? 3 : 0)
+                    )
+            )
+        }
+        .disabled(isPurchasing)
+        .buttonStyle(.plain)
+    }
+    
+    private var productTitle: String {
+        if product.id.contains("monthly") {
+            return "Monthly"
+        } else if product.id.contains("yearly") {
+            return "Yearly"
+        } else if product.id.contains("lifetime") {
+            return "Lifetime"
+        }
+        return product.displayName
+    }
+    
+    private var productDescription: String? {
+        if product.id.contains("yearly") {
+            return "Best value - Save 40%"
+        } else if product.id.contains("lifetime") {
+            return "One-time purchase"
+        }
+        return nil
+    }
+}
+
+// MARK: - Feature Row
+
+struct FeatureRow: View {
+    let icon: String
+    let title: String
+    let description: String
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(.blue)
+                .frame(width: 24)
             
-            isLoading = false
-        } catch {
-            print("[PaywallView] ❌ Failed to load offerings: \(error)")
-            print("[PaywallView] 🔍 Error details: \(error.localizedDescription)")
-            
-            // Log additional diagnostic information
-            if let nsError = error as NSError? {
-                print("[PaywallView] 🔍 Error domain: \(nsError.domain)")
-                print("[PaywallView] 🔍 Error code: \(nsError.code)")
-                print("[PaywallView] 🔍 Error userInfo: \(nsError.userInfo)")
-            }
-            
-            isLoading = false
-            
-            // Provide user-friendly error messages
-            if let rcError = error as? ErrorCode {
-                switch rcError {
-                case .configurationError:
-                    errorMessage = """
-                    Configuration Error (Error 23)
-                    
-                    There's an issue with the subscription setup. Please contact support.
-                    
-                    Technical details: \(rcError.localizedDescription)
-                    Device: \(deviceModel) (\(systemVersion))
-                    """
-                case .networkError:
-                    errorMessage = """
-                    Network Error
-                    
-                    Unable to connect to the subscription service. Please check your internet connection and try again.
-                    
-                    Device: \(deviceModel) (\(systemVersion))
-                    """
-                case .storeProblemError:
-                    errorMessage = """
-                    App Store Error
-                    
-                    There's a problem connecting to the App Store. Please try again later.
-                    
-                    This may occur in sandbox testing. If you're a reviewer, please ensure:
-                    • Sandbox account is signed in (Settings → App Store → Sandbox Account)
-                    • Products are approved in App Store Connect
-                    
-                    Device: \(deviceModel) (\(systemVersion))
-                    """
-                default:
-                    errorMessage = """
-                    Error Loading Subscriptions
-                    
-                    \(rcError.localizedDescription)
-                    
-                    Error code: \(rcError.errorCode)
-                    Device: \(deviceModel) (\(systemVersion))
-                    """
-                }
-            } else {
-                errorMessage = """
-                Unexpected Error
-                
-                \(error.localizedDescription)
-                
-                Please try again or contact support if the problem persists.
-                
-                Device: \(deviceModel) (\(systemVersion))
-                """
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                Text(description)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
         }
     }

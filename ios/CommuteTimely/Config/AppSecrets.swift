@@ -6,7 +6,6 @@
 //
 // ⚠️ IMPORTANT: Replace the placeholder Supabase anon key with your real key!
 // - Supabase: Get from https://app.supabase.com/project/_/settings/api
-// - RevenueCat: Get from https://app.revenuecat.com/projects
 //
 // 🔒 SECURITY: Never commit real production keys to version control.
 // Consider using environment variables or a secrets management system for production.
@@ -38,12 +37,6 @@ struct AppSecrets {
                supabaseAnonKey.components(separatedBy: ".").count == 3
     }
     
-    // MARK: - RevenueCat Configuration
-    
-    /// RevenueCat public API key (SDK Key)
-    /// Get from: RevenueCat Dashboard → Projects → [Your App] → API Keys
-    /// Format: Starts with "appl_" for production or test prefix for sandbox
-    static let revenueCatPublicAPIKey = "appl_iIcgitABeWzvYRBGwflcjuTEZvx"
     
     // MARK: - Mapbox Configuration
     

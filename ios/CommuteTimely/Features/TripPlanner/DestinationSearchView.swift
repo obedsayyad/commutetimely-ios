@@ -10,6 +10,8 @@ import SwiftUI
 struct DestinationSearchView: View {
     @ObservedObject var viewModel: TripPlannerViewModel
     let onNext: () -> Void
+    var isSelectingOrigin: Bool = false
+    var onDismiss: (() -> Void)? = nil
     
     @State private var searchText = ""
     @State private var searchResults: [Location] = []
@@ -21,7 +23,7 @@ struct DestinationSearchView: View {
         VStack(spacing: 0) {
             // Search field
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-                Text("Where are you going?")
+                Text(isSelectingOrigin ? "Where are you starting from?" : "Where are you going?")
                     .font(DesignTokens.Typography.title3)
                     .fontWeight(.semibold)
                     .foregroundColor(DesignTokens.Colors.textPrimary)
@@ -47,8 +49,8 @@ struct DestinationSearchView: View {
                     }
                 }
                 
-                // Show selected destination if any
-                if let selected = viewModel.selectedDestination {
+                // Show selected destination/origin if any
+                if let selected = isSelectingOrigin ? viewModel.selectedOrigin.location : viewModel.selectedDestination {
                     HStack(spacing: DesignTokens.Spacing.sm) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
@@ -67,7 +69,11 @@ struct DestinationSearchView: View {
                         Spacer()
                         
                         Button {
-                            viewModel.selectedDestination = nil
+                            if isSelectingOrigin {
+                                viewModel.selectedOrigin = .currentLocation
+                            } else {
+                                viewModel.selectedDestination = nil
+                            }
                             searchText = ""
                             searchResults = []
                         } label: {
@@ -125,14 +131,22 @@ struct DestinationSearchView: View {
                     LazyVStack(spacing: 0) {
                         ForEach(searchResults, id: \.coordinate) { location in
                             LocationResultCell(location: location) {
-                                // Select destination and auto-advance
-                                viewModel.selectedDestination = location
+                                // Select destination/origin and auto-advance
+                                if isSelectingOrigin {
+                                    viewModel.selectedOrigin = .custom(location)
+                                } else {
+                                    viewModel.selectedDestination = location
+                                }
                                 searchText = location.displayName
                                 searchResults = []
                                 
-                                // Auto-advance to next step after short delay
+                                // Auto-advance or dismiss
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    onNext()
+                                    if isSelectingOrigin {
+                                        onDismiss?()
+                                    } else {
+                                        onNext()
+                                    }
                                 }
                             }
                             
@@ -158,7 +172,7 @@ struct DestinationSearchView: View {
                             .fontWeight(.bold)
                             .foregroundColor(DesignTokens.Colors.textPrimary)
                         
-                        Text(viewModel.selectedDestination!.displayName)
+                        Text(isSelectingOrigin ? viewModel.selectedOrigin.displayName : viewModel.selectedDestination!.displayName)
                             .font(DesignTokens.Typography.body)
                             .foregroundColor(DesignTokens.Colors.textSecondary)
                             .multilineTextAlignment(.center)
@@ -167,8 +181,12 @@ struct DestinationSearchView: View {
                     
                     Spacer()
                     
-                    CTButton("Continue to Schedule", style: .primary) {
-                        onNext()
+                    CTButton(isSelectingOrigin ? "Set Starting Point" : "Continue to Schedule", style: .primary) {
+                        if isSelectingOrigin {
+                            onDismiss?()
+                        } else {
+                            onNext()
+                        }
                     }
                     .padding(.horizontal)
                     .padding(.bottom)

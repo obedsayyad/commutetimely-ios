@@ -70,7 +70,43 @@ final class PersonalizedNotificationScheduler: PersonalizedNotificationScheduler
         
         // Schedule 7 notifications, one for each day
         for i in 0..<7 {
-            let messageIndex = (dayIndex + i) % 7
+            // Message and content will be generated after ensuring the correct date/weekday
+            
+            // Calculate trigger date (i days from now at the scheduled time)
+            // IMPORTANT: Use user's local timezone for accurate day-of-week
+            var calendar = Calendar.current
+            calendar.timeZone = TimeZone.current
+            
+            // Get current date in user's timezone
+            let now = Date()
+            var dateComponents = calendar.dateComponents([.year, .month, .day], from: now)
+            dateComponents.hour = preferences.notificationSettings.personalizedNotificationHour
+            dateComponents.minute = preferences.notificationSettings.personalizedNotificationMinute
+            dateComponents.timeZone = TimeZone.current
+            
+            guard var triggerDate = calendar.date(from: dateComponents) else {
+                throw PersonalizedNotificationError.invalidDateComponents
+            }
+            
+            // If the time has already passed today, start scheduling from tomorrow
+            if triggerDate < now {
+                triggerDate = calendar.date(byAdding: .day, value: 1, to: triggerDate) ?? triggerDate
+            }
+            
+            // Add i days to get the date for this notification
+            triggerDate = calendar.date(byAdding: .day, value: i, to: triggerDate) ?? triggerDate
+            
+            // Create trigger components with explicit timezone
+            var triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: triggerDate)
+            triggerComponents.timeZone = TimeZone.current
+            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
+            
+            // Calculate message index based on the day of the week of the trigger date
+            // Calendar.weekday: 1=Sunday, 2=Monday, ..., 7=Saturday
+            // We want: 0=Monday, 1=Tuesday, ..., 6=Sunday
+            let weekday = calendar.component(.weekday, from: triggerDate)
+            let messageIndex = (weekday - 2 + 7) % 7
+            
             let message = messageTemplates[messageIndex].replacingOccurrences(of: "{firstName}", with: firstName)
             
             let content = UNMutableNotificationContent()
@@ -82,35 +118,18 @@ final class PersonalizedNotificationScheduler: PersonalizedNotificationScheduler
                 "dayNumber": messageIndex + 1
             ]
             
-            // Calculate trigger date (i days from now at the scheduled time)
-            let calendar = Calendar.current
-            var dateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
-            dateComponents.hour = preferences.notificationSettings.personalizedNotificationHour
-            dateComponents.minute = preferences.notificationSettings.personalizedNotificationMinute
-            
-            guard var triggerDate = calendar.date(from: dateComponents) else {
-                throw PersonalizedNotificationError.invalidDateComponents
-            }
-            
-            // If the time has already passed today, start scheduling from tomorrow
-            if triggerDate < Date() {
-                triggerDate = calendar.date(byAdding: .day, value: 1, to: triggerDate) ?? triggerDate
-            }
-            
-            // Add i days to get the date for this notification
-            triggerDate = calendar.date(byAdding: .day, value: i, to: triggerDate) ?? triggerDate
-            
-            let triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: triggerDate)
-            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
-            
             let identifier = "\(notificationIdentifierPrefix)_\(messageIndex)"
             let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
             
             try await center.add(request)
         }
         
-        // Update day index for next cycle (increment by 1, so next scheduling starts with next message)
-        preferences.notificationSettings.personalizedNotificationDayIndex = (dayIndex + 1) % 7
+        // We no longer rely on the stored day index for message selection, 
+        // but we update it just in case other parts of the app use it.
+        // We set it to the index of tomorrow's day.
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        let tomorrowWeekday = calendar.component(.weekday, from: tomorrow)
+        preferences.notificationSettings.personalizedNotificationDayIndex = (tomorrowWeekday - 2 + 7) % 7
         try await userPreferencesService.updatePreferences(preferences)
     }
     
