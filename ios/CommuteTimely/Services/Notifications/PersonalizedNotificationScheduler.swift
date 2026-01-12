@@ -68,14 +68,16 @@ final class PersonalizedNotificationScheduler: PersonalizedNotificationScheduler
         var preferences = await userPreferencesService.loadPreferences()
         let dayIndex = preferences.notificationSettings.personalizedNotificationDayIndex
         
+        // Create calendar with user's timezone
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone.current
+
         // Schedule 7 notifications, one for each day
         for i in 0..<7 {
             // Message and content will be generated after ensuring the correct date/weekday
             
             // Calculate trigger date (i days from now at the scheduled time)
             // IMPORTANT: Use user's local timezone for accurate day-of-week
-            var calendar = Calendar.current
-            calendar.timeZone = TimeZone.current
             
             // Get current date in user's timezone
             let now = Date()
