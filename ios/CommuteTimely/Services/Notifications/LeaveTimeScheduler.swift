@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import UserNotifications
 import CoreLocation
 
 protocol LeaveTimeSchedulerProtocol {

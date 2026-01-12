@@ -17,7 +17,7 @@ protocol NotificationServiceProtocol {
     func registerBackgroundTasks()
 }
 
-class NotificationService: NSObject, NotificationServiceProtocol {
+class NotificationService: NSObject, NotificationServiceProtocol, UNUserNotificationCenterDelegate {
     private let mlPredictionService: MLPredictionServiceProtocol
     private let tripStorageService: TripStorageServiceProtocol
     private let center = UNUserNotificationCenter.current()
@@ -41,7 +41,7 @@ class NotificationService: NSObject, NotificationServiceProtocol {
         
         // Main notification at leave time
         if trip.notificationSettings.enableMainNotification {
-            let mainNotification = createMainNotificationContent(for: trip, prediction: prediction)
+            let mainNotification = await createMainNotificationContent(for: trip, prediction: prediction)
             let mainTrigger = createTrigger(for: leaveTime)
             let mainRequest = UNNotificationRequest(
                 identifier: "trip_\(trip.id.uuidString)_main",
@@ -123,7 +123,7 @@ class NotificationService: NSObject, NotificationServiceProtocol {
     
     // MARK: - Private Helpers
     
-    private func createMainNotificationContent(for trip: Trip, prediction: Prediction) -> UNMutableNotificationContent {
+    private func createMainNotificationContent(for trip: Trip, prediction: Prediction) async -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         
         // Vary the message for naturalness
@@ -135,7 +135,8 @@ class NotificationService: NSObject, NotificationServiceProtocol {
         content.title = messages.randomElement() ?? messages[0]
         
         content.body = "\(prediction.explanation). Confidence: \(prediction.confidencePercentage)%"
-        let prefs = DIContainer.shared.userPreferencesService.getCachedPreferences()
+        content.body = "\(prediction.explanation). Confidence: \(prediction.confidencePercentage)%"
+        let prefs = await DIContainer.shared.userPreferencesService.loadPreferences()
         
         if prefs.notificationSettings.criticalAlertsEnabled {
             content.interruptionLevel = .critical
