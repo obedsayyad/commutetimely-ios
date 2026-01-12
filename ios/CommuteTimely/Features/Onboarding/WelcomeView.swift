@@ -199,12 +199,8 @@ class WelcomeViewModel: ObservableObject {
     
     func requestLocationAccess() async {
         let service = DIContainer.shared.locationService
-        do {
-            _ = try await service.requestPermission()
-            locationAuthorized = true
-        } catch {
-            print("Location permission denied")
-        }
+        service.requestWhenInUseAuthorization()
+        locationAuthorized = true
     }
     
     func requestCalendarAccess() async {
@@ -218,7 +214,7 @@ class WelcomeViewModel: ObservableObject {
     }
     
     func requestNotificationAccess() async {
-        let service = DIContainer.shared.leaveTimeScheduler
+        let service = DIContainer.shared.notificationService
         do {
             _ = try await service.requestAuthorization()
         } catch {
