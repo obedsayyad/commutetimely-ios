@@ -11,12 +11,15 @@ import StoreKit
 
 protocol SubscriptionServiceProtocol {
     var subscriptionStatus: AnyPublisher<SubscriptionStatus, Never> { get }
+    var loadingState: AnyPublisher<SubscriptionLoadingState, Never> { get }
+    var availableProducts: AnyPublisher<[Product], Never> { get }
     
     func configure()
     func purchase(productId: String) async throws
     func restorePurchases() async throws
     func checkEntitlement(_ identifier: String) async -> Bool
     func refreshSubscriptionStatus() async
+    func loadProducts() async
 }
 
 @MainActor
@@ -25,10 +28,20 @@ class SubscriptionService: SubscriptionServiceProtocol {
     private let subscriptionManager: SubscriptionManager
     
     private let subscriptionStatusSubject = CurrentValueSubject<SubscriptionStatus, Never>(SubscriptionStatus())
+    private let loadingStateSubject = CurrentValueSubject<SubscriptionLoadingState, Never>(.idle)
+    private let availableProductsSubject = CurrentValueSubject<[Product], Never>([])
     private var cancellables = Set<AnyCancellable>()
     
     var subscriptionStatus: AnyPublisher<SubscriptionStatus, Never> {
         subscriptionStatusSubject.eraseToAnyPublisher()
+    }
+    
+    var loadingState: AnyPublisher<SubscriptionLoadingState, Never> {
+        loadingStateSubject.eraseToAnyPublisher()
+    }
+    
+    var availableProducts: AnyPublisher<[Product], Never> {
+        availableProductsSubject.eraseToAnyPublisher()
     }
     
     init(authManager: AuthSessionController) {
@@ -39,6 +52,18 @@ class SubscriptionService: SubscriptionServiceProtocol {
         subscriptionManager.$subscriptionStatus
             .sink { [weak self] status in
                 self?.subscriptionStatusSubject.send(status)
+            }
+            .store(in: &cancellables)
+            
+        subscriptionManager.$loadingState
+            .sink { [weak self] state in
+                self?.loadingStateSubject.send(state)
+            }
+            .store(in: &cancellables)
+            
+        subscriptionManager.$availableProducts
+            .sink { [weak self] products in
+                self?.availableProductsSubject.send(products)
             }
             .store(in: &cancellables)
     }
@@ -70,6 +95,10 @@ class SubscriptionService: SubscriptionServiceProtocol {
     func refreshSubscriptionStatus() async {
         await subscriptionManager.updateSubscriptionStatus()
     }
+    
+    func loadProducts() async {
+        await subscriptionManager.loadProducts()
+    }
 }
 
 // MARK: - Mock Service
@@ -79,6 +108,14 @@ class MockSubscriptionService: SubscriptionServiceProtocol {
     
     var subscriptionStatus: AnyPublisher<SubscriptionStatus, Never> {
         subscriptionStatusSubject.eraseToAnyPublisher()
+    }
+    
+    var loadingState: AnyPublisher<SubscriptionLoadingState, Never> {
+        Just(.idle).eraseToAnyPublisher()
+    }
+    
+    var availableProducts: AnyPublisher<[Product], Never> {
+        Just([]).eraseToAnyPublisher()
     }
     
     func configure() {}
@@ -103,6 +140,10 @@ class MockSubscriptionService: SubscriptionServiceProtocol {
     }
     
     func refreshSubscriptionStatus() async {
+        // Mock: No-op
+    }
+    
+    func loadProducts() async {
         // Mock: No-op
     }
 }

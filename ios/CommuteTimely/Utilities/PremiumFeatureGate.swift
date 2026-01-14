@@ -36,7 +36,7 @@ struct PremiumFeatureGate: ViewModifier {
             await checkAccess()
         }
         .sheet(isPresented: $showingPaywall) {
-            PaywallView(analyticsService: analyticsService)
+            PaywallView()
         }
         .sheet(isPresented: $showingAuthLanding) {
             AuthLandingView(authManager: authManager)

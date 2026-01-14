@@ -8,15 +8,26 @@
 import Foundation
 import StoreKit
 import Combine
+import OSLog
+
+enum SubscriptionLoadingState: Equatable {
+    case idle
+    case loading
+    case success
+    case failed(String)
+}
 
 @MainActor
 class SubscriptionManager: ObservableObject {
+    
+    private static let logger = Logger(subsystem: "com.commutetimely.app", category: "SubscriptionManager")
     
     // MARK: - Published Properties
     
     @Published var availableProducts: [Product] = []
     @Published var purchasedProductIDs: Set<String> = []
     @Published var subscriptionStatus: SubscriptionStatus = SubscriptionStatus()
+    @Published var loadingState: SubscriptionLoadingState = .idle
     
     // MARK: - Private Properties
     
@@ -33,10 +44,9 @@ class SubscriptionManager: ObservableObject {
         // Start listening for transaction updates
         updateListenerTask = listenForTransactions()
         
-        Task {
-            await loadProducts()
-            await updateSubscriptionStatus()
-        }
+        // Don't auto-load here. Let the service/viewmodel trigger it to allow for retry logic and better control.
+        // We set state to idle initially.
+        self.loadingState = .idle
     }
     
     deinit {
@@ -46,6 +56,14 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Product Loading
     
     func loadProducts() async {
+        guard loadingState != .loading else {
+             Self.logger.info("Ignoring request to load products - already loading")
+             return
+        }
+    
+        self.loadingState = .loading
+        Self.logger.info("Starting product load for IDs: \(self.productIds)")
+        
         do {
             let products = try await Product.products(for: productIds)
             
@@ -58,9 +76,16 @@ class SubscriptionManager: ObservableObject {
                 return true
             }
             
-            print("[SubscriptionManager] ✅ Loaded \(products.count) products")
+            if self.availableProducts.isEmpty {
+                 Self.logger.error("⚠️ No products returned from StoreKit. Common causes: Sandbox tester not set, Banking/Agreements missing, Bundle ID mismatch.")
+                 self.loadingState = .failed("No products found. Please check network or configuration.")
+            } else {
+                 Self.logger.info("✅ Successfully loaded \(products.count) products")
+                 self.loadingState = .success
+            }
         } catch {
-            print("[SubscriptionManager] ❌ Failed to load products: \(error)")
+            Self.logger.error("❌ Failed to load products: \(error.localizedDescription)")
+            self.loadingState = .failed(error.localizedDescription)
         }
     }
     

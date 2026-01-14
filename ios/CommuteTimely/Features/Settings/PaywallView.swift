@@ -10,15 +10,10 @@ import StoreKit
 
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var subscriptionManager = SubscriptionManager()
-    @State private var isPurchasing = false
-    @State private var errorMessage: String?
-    @State private var showError = false
+    @StateObject private var viewModel = PaywallViewModel()
     
-    let analyticsService: AnalyticsServiceProtocol
-    
-    init(analyticsService: AnalyticsServiceProtocol = DIContainer.shared.analyticsService) {
-        self.analyticsService = analyticsService
+    init() {
+        // No init params needed now, VM handles DI
     }
     
     var body: some View {
@@ -33,10 +28,17 @@ struct PaywallView: View {
                         featuresView
                         
                         // Products
-                        if subscriptionManager.availableProducts.isEmpty {
+                        switch viewModel.loadingState {
+                        case .idle, .loading:
                             loadingView
-                        } else {
-                            productsView
+                        case .success:
+                            if viewModel.availableProducts.isEmpty {
+                                errorView(message: "No products available")
+                            } else {
+                                productsView
+                            }
+                        case .failed(let errorMessage):
+                            errorView(message: errorMessage)
                         }
                         
                         // Restore button
@@ -49,7 +51,7 @@ struct PaywallView: View {
                 }
                 
                 // Loading overlay
-                if isPurchasing {
+                if viewModel.isPurchasing {
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
                     
@@ -73,13 +75,18 @@ struct PaywallView: View {
                 }
             }
         }
-        .alert("Error", isPresented: $showError) {
+        .alert("Error", isPresented: $viewModel.showError) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(errorMessage ?? "An error occurred")
+            Text(viewModel.errorMessage ?? "An error occurred")
+        }
+        .onChange(of: viewModel.isSubscribed) { isSubscribed in
+            if isSubscribed {
+                dismiss()
+            }
         }
         .onAppear {
-            analyticsService.trackScreen("Paywall")
+            viewModel.onViewAppear()
         }
     }
     
@@ -119,13 +126,13 @@ struct PaywallView: View {
     
     private var productsView: some View {
         VStack(spacing: 12) {
-            ForEach(subscriptionManager.availableProducts, id: \.id) { product in
+            ForEach(viewModel.availableProducts, id: \.id) { product in
                 ProductCard(
                     product: product,
-                    isPurchasing: isPurchasing,
-                    isSelected: isRecommended(product)
+                    isPurchasing: viewModel.isPurchasing,
+                    isSelected: viewModel.isRecommended(product)
                 ) {
-                    purchaseProduct(product)
+                    viewModel.purchase(product)
                 }
             }
         }
@@ -135,13 +142,13 @@ struct PaywallView: View {
     
     private var restoreButton: some View {
         Button {
-            restorePurchases()
+            viewModel.restorePurchases()
         } label: {
             Text("Restore Purchases")
                 .font(.callout)
                 .foregroundColor(.blue)
         }
-        .disabled(isPurchasing)
+        .disabled(viewModel.isPurchasing)
     }
     
     // MARK: - Legal Footer
@@ -176,53 +183,39 @@ struct PaywallView: View {
         .frame(height: 200)
     }
     
-    // MARK: - Actions
-    
-    private func purchaseProduct(_ product: Product) {
-        Task {
-            isPurchasing = true
+    private func errorView(message: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.largeTitle)
+                .foregroundColor(.yellow)
             
-            do {
-                try await subscriptionManager.purchase(product)
-                
-                // Track purchase
-                analyticsService.trackEvent(.subscriptionStarted(tier: "premium"))
-                
-                // Dismiss on success
-                dismiss()
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
-            }
+            Text("Unable to load subscriptions")
+                .font(.headline)
             
-            isPurchasing = false
-        }
-    }
-    
-    private func restorePurchases() {
-        Task {
-            isPurchasing = true
+            Text(message)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
             
-            do {
-                try await subscriptionManager.restorePurchases()
-                
-                if subscriptionManager.subscriptionStatus.isSubscribed {
-                    dismiss()
-                } else {
-                    errorMessage = "No previous purchases found"
-                    showError = true
+            Button {
+                viewModel.loadProducts()
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.clockwise")
+                    Text("Retry")
                 }
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
+                .font(.subheadline.bold())
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(Color.blue)
+                .cornerRadius(20)
             }
-            
-            isPurchasing = false
         }
-    }
-    
-    private func isRecommended(_ product: Product) -> Bool {
-        return product.id.contains("yearly")
+        .frame(height: 200)
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
     }
 }
 
@@ -264,8 +257,8 @@ struct ProductCard: View {
                 Spacer()
                 
                 Text(product.displayPrice)
-                    .font(.title3.bold())
-                    .foregroundColor(.white)
+                .font(.title3.bold())
+                .foregroundColor(.white)
             }
             .padding()
             .background(
