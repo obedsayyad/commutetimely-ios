@@ -246,6 +246,7 @@ enum SubscriptionError: LocalizedError {
     case paymentPending
     case verificationFailed
     case restoreFailed(Error)
+    case purchasesDisabled
     
     var errorDescription: String? {
         switch self {
@@ -261,6 +262,8 @@ enum SubscriptionError: LocalizedError {
             return "Failed to verify purchase"
         case .restoreFailed(let error):
             return "Failed to restore purchases: \(error.localizedDescription)"
+        case .purchasesDisabled:
+            return "Purchases are currently disabled. We're adding a paywall soon to unlock premium features!"
         }
     }
 }

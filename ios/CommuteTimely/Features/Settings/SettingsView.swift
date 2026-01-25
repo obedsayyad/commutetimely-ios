@@ -10,7 +10,6 @@ import Combine
 
 struct SettingsView: View {
     @StateObject private var viewModel = DIContainer.shared.makeSettingsViewModel()
-    @State private var showingPaywall = false
     @State private var showingAuthLanding = false
     @State private var showingThemePicker = false
     @State private var showingTemperaturePicker = false
@@ -53,9 +52,6 @@ struct SettingsView: View {
             .background(DesignTokens.Colors.background)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
-            .sheet(isPresented: $showingPaywall) {
-                PaywallView()
-            }
             .sheet(isPresented: $showingAuthLanding) {
                 AuthLandingView(authManager: authManager)
             }
@@ -170,44 +166,26 @@ struct SettingsView: View {
                         Spacer()
                         
                         if !viewModel.subscriptionStatus.isSubscribed {
-                            CTButtonCompact("Upgrade", style: .primary) {
-                                // Check if user is signed in before showing paywall
-                                if authManager.isAuthenticated {
-                                    showingPaywall = true
-                                } else {
-                                    showingAuthLanding = true
-                                }
+                            HStack {
+                                Image(systemName: "sparkles")
+                                    .font(.caption)
+                                Text("Coming Soon")
+                                    .font(DesignTokens.Typography.caption)
+                                    .fontWeight(.semibold)
                             }
+                            .foregroundColor(.white.opacity(0.6))
+                            .padding(.horizontal, DesignTokens.Spacing.md)
+                            .padding(.vertical, DesignTokens.Spacing.xs)
+                            .background(DesignTokens.Colors.primaryFallback().opacity(0.5))
+                            .cornerRadius(DesignTokens.CornerRadius.md)
                         }
                     }
                 }
             }
             .padding(.horizontal, DesignTokens.Spacing.md)
             
-            // Restore Purchases - only shown when not subscribed
             if !viewModel.subscriptionStatus.isSubscribed {
-                CTCard(padding: DesignTokens.Spacing.md, elevation: .medium) {
-                    Button {
-                        Task {
-                            await viewModel.restorePurchases()
-                        }
-                    } label: {
-                        HStack {
-                            Text("Restore Purchases")
-                                .font(DesignTokens.Typography.callout)
-                                .foregroundColor(DesignTokens.Colors.primaryFallback())
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(DesignTokens.Colors.textSecondary)
-                        }
-                    }
-                }
-                .padding(.horizontal, DesignTokens.Spacing.md)
-            }
-            
-            if !viewModel.subscriptionStatus.isSubscribed {
-                Text("Unlock advanced predictions, alternative routes, and unlimited trips with Premium.")
+                Text("We're adding a paywall soon to unlock unlimited trips and premium features. Stay tuned!")
                     .font(DesignTokens.Typography.footnote)
                     .foregroundColor(DesignTokens.Colors.textSecondary)
                     .padding(.horizontal, DesignTokens.Spacing.md)

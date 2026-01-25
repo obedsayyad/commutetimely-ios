@@ -82,9 +82,6 @@ struct DestinationDetailView: View {
                     dismiss()
                 }
             }
-            .sheet(isPresented: $viewModel.showPaywall) {
-                PaywallView()
-            }
             .onChange(of: viewModel.arrivalTime) { oldValue, newValue in
                 // Recalculate prediction and weather when arrival time changes
                 if oldValue != newValue {
@@ -481,7 +478,6 @@ final class DestinationDetailViewModel: ObservableObject {
     @Published var didSave = false
     @Published var lastUpdated: Date?
     @Published var subscriptionStatus: SubscriptionStatus = SubscriptionStatus()
-    @Published var showPaywall = false
     
     let destination: MapDestinationPin
     private let userCoordinate: Coordinate?
@@ -632,10 +628,10 @@ final class DestinationDetailViewModel: ObservableObject {
             )
             
             if !canCreate {
-                // Show paywall for free users who have reached daily limit
+                // Show error message for free users who have reached daily limit
                 await MainActor.run {
                     self.isSaving = false
-                    self.showPaywall = true
+                    self.errorMessage = "Trip limit reached. Premium features with unlimited trips are coming soon!"
                 }
                 return
             }

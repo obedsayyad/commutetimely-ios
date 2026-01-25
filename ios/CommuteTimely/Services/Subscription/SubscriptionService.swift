@@ -77,15 +77,13 @@ class SubscriptionService: SubscriptionServiceProtocol {
     }
     
     func purchase(productId: String) async throws {
-        guard let product = subscriptionManager.availableProducts.first(where: { $0.id == productId }) else {
-            throw SubscriptionError.productNotFound
-        }
-        
-        try await subscriptionManager.purchase(product)
+        // Purchases are currently disabled - paywall coming soon
+        throw SubscriptionError.purchasesDisabled
     }
     
     func restorePurchases() async throws {
-        try await subscriptionManager.restorePurchases()
+        // Restore purchases is currently disabled - paywall coming soon
+        throw SubscriptionError.purchasesDisabled
     }
     
     func checkEntitlement(_ identifier: String) async -> Bool {

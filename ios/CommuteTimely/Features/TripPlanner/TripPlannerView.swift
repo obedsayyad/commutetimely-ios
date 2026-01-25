@@ -58,11 +58,8 @@ struct TripPlannerView: View {
                                     HapticManager.shared.successConfirm()
                                     Task {
                                         await viewModel.saveTrip()
-                                        // Check if paywall was shown - if not, dismiss
                                         await MainActor.run {
-                                            if !viewModel.showPaywall {
-                                                dismiss()
-                                            }
+                                            dismiss()
                                         }
                                     }
                                 }
@@ -85,9 +82,6 @@ struct TripPlannerView: View {
                 }
             }
             .animation(DesignTokens.Animation.adaptive(DesignTokens.Animation.springSmooth), value: currentStep)
-            .sheet(isPresented: $viewModel.showPaywall) {
-                PaywallView()
-            }
         }
     }
     
@@ -144,7 +138,6 @@ class TripPlannerViewModel: BaseViewModel {
     @Published var isLoadingSuggestions = false
     
     @Published var subscriptionStatus: SubscriptionStatus = SubscriptionStatus()
-    @Published var showPaywall = false
     
     init(
         mapboxService: MapboxServiceProtocol,
@@ -373,9 +366,9 @@ class TripPlannerViewModel: BaseViewModel {
         )
         
         if !canCreate {
-            // Show paywall for free users who have reached daily limit
+            // Show error message for free users who have reached daily limit
             isSaving = false
-            showPaywall = true
+            setError("Trip limit reached. Premium features with unlimited trips are coming soon!")
             return
         }
         

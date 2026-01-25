@@ -17,10 +17,6 @@ struct PremiumFeatureGate: ViewModifier {
     
     @State private var hasAccess = false
     @State private var isCheckingAccess = true
-    @State private var showingPaywall = false
-    @State private var showingAuthLanding = false
-    
-    @ObservedObject private var authManager = DIContainer.shared.authManager
     
     func body(content: Content) -> some View {
         ZStack {
@@ -34,12 +30,6 @@ struct PremiumFeatureGate: ViewModifier {
         }
         .task {
             await checkAccess()
-        }
-        .sheet(isPresented: $showingPaywall) {
-            PaywallView()
-        }
-        .sheet(isPresented: $showingAuthLanding) {
-            AuthLandingView(authManager: authManager)
         }
     }
     
@@ -57,27 +47,23 @@ struct PremiumFeatureGate: ViewModifier {
                 .foregroundColor(DesignTokens.Colors.textSecondary)
                 .multilineTextAlignment(.center)
             
-            Button {
-                analyticsService.trackEvent(.subscriptionStarted(tier: "feature_gate_\(featureName)"))
-                // Check if user is signed in before showing paywall
-                if authManager.isAuthenticated {
-                    showingPaywall = true
-                } else {
-                    showingAuthLanding = true
-                }
-            } label: {
-                HStack {
-                    Image(systemName: "crown.fill")
-                    Text("Upgrade to Pro")
-                }
-                .font(DesignTokens.Typography.callout)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
-                .padding(.horizontal, DesignTokens.Spacing.lg)
-                .padding(.vertical, DesignTokens.Spacing.sm)
-                .background(DesignTokens.Colors.primaryFallback())
-                .cornerRadius(DesignTokens.CornerRadius.md)
+            Text("We're adding a paywall soon to unlock premium features. Stay tuned!")
+                .font(DesignTokens.Typography.footnote)
+                .foregroundColor(DesignTokens.Colors.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, DesignTokens.Spacing.sm)
+            
+            HStack {
+                Image(systemName: "sparkles")
+                Text("Coming Soon")
             }
+            .font(DesignTokens.Typography.callout)
+            .fontWeight(.semibold)
+            .foregroundColor(.white.opacity(0.6))
+            .padding(.horizontal, DesignTokens.Spacing.lg)
+            .padding(.vertical, DesignTokens.Spacing.sm)
+            .background(DesignTokens.Colors.primaryFallback().opacity(0.5))
+            .cornerRadius(DesignTokens.CornerRadius.md)
         }
         .padding()
         .background(Color(uiColor: .systemBackground).opacity(0.95))
@@ -163,29 +149,25 @@ struct InlinePremiumGate: View {
                 }
                 .foregroundColor(DesignTokens.Colors.textPrimary)
                 
-                Text("Premium feature")
+                Text("Premium feature - Coming soon")
                     .font(DesignTokens.Typography.caption)
                     .foregroundColor(DesignTokens.Colors.textSecondary)
             }
             
             Spacer()
             
-            Button {
-                onUpgrade()
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "crown.fill")
-                        .font(.caption2)
-                    Text("Upgrade")
-                        .font(DesignTokens.Typography.caption)
-                        .fontWeight(.semibold)
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(DesignTokens.Colors.primaryFallback())
-                .cornerRadius(DesignTokens.CornerRadius.sm)
+            HStack(spacing: 4) {
+                Image(systemName: "sparkles")
+                    .font(.caption2)
+                Text("Coming Soon")
+                    .font(DesignTokens.Typography.caption)
+                    .fontWeight(.semibold)
             }
+            .foregroundColor(.white.opacity(0.6))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(DesignTokens.Colors.primaryFallback().opacity(0.5))
+            .cornerRadius(DesignTokens.CornerRadius.sm)
         }
         .padding()
         .background(Color(uiColor: .secondarySystemBackground))
