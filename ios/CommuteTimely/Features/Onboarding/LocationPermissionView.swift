@@ -37,7 +37,7 @@ struct LocationPermissionView: View {
                 .padding(.bottom, DesignTokens.Spacing.md)
                 
                 // Title
-                Text("Enable Location")
+                Text("Location Access")
                     .font(DesignTokens.Typography.title1)
                     .foregroundColor(DesignTokens.Colors.textPrimary)
                 
@@ -86,7 +86,7 @@ struct LocationPermissionView: View {
                     }
                     
                     CTButton(
-                        authorizationStatus == .notDetermined ? "Enable Location" : "Continue",
+                        authorizationStatus == .notDetermined ? "Continue" : "Continue",
                         style: .primary
                     ) {
                         if authorizationStatus == .notDetermined {

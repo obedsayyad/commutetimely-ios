@@ -76,7 +76,12 @@ class AuthViewModel: ObservableObject {
     
     func signInWithApple() async {
         // This method is kept for programmatic Apple Sign-In if needed
-        // But SignInWithAppleButton handles the UI flow
+        // Check network connection first
+        if !NetworkMonitor.shared.checkConnection() {
+            errorMessage = "No internet connection. Please check your network and try again."
+            return
+        }
+        
         isLoading = true
         errorMessage = nil
         
@@ -278,9 +283,15 @@ class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthor
     }
     
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first else {
-            fatalError("No window available for Apple Sign-In")
+        // Find the active window scene
+        let scenes = UIApplication.shared.connectedScenes
+        let windowScene = scenes.first { $0.activationState == .foregroundActive } as? UIWindowScene
+            ?? scenes.first as? UIWindowScene
+        
+        guard let window = windowScene?.windows.first(where: { $0.isKeyWindow })
+                ?? windowScene?.windows.first else {
+            // Fallback that shouldn't happen in a properly set up app
+            return ASPresentationAnchor()
         }
         return window
     }
