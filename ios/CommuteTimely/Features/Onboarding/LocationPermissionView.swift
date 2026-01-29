@@ -15,102 +15,107 @@ struct LocationPermissionView: View {
     @State private var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
     var body: some View {
-        VStack(spacing: DesignTokens.Spacing.xl) {
-            // Progress indicator
-            OnboardingProgressView(currentStep: 1, totalSteps: 2)
-                .padding(.top, DesignTokens.Spacing.xl)
-            
-            Spacer()
-            
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(DesignTokens.Colors.primaryFallback().opacity(0.1))
-                    .frame(width: 120, height: 120)
+        ScrollView {
+            VStack(spacing: DesignTokens.Spacing.xl) {
+                // Progress indicator
+                OnboardingProgressView(currentStep: 1, totalSteps: 2)
+                    .padding(.top, DesignTokens.Spacing.xl)
                 
-                Image(systemName: "location.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(DesignTokens.Colors.primaryFallback())
-            }
-            .padding(.bottom, DesignTokens.Spacing.md)
-            
-            // Title
-            Text("Enable Location")
-                .font(DesignTokens.Typography.title1)
-                .foregroundColor(DesignTokens.Colors.textPrimary)
-            
-            // Description
-            Text("CommuteTimely needs your location to calculate accurate travel times and monitor traffic conditions.")
-                .font(DesignTokens.Typography.body)
-                .foregroundColor(DesignTokens.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, DesignTokens.Spacing.xl)
-            
-            Spacer()
-            
-            // Why we need this
-            VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-                PermissionReasonRow(
-                    icon: "map.fill",
-                    text: "Calculate routes from your current location"
-                )
+                Spacer()
+                    .frame(minHeight: 20)
                 
-                PermissionReasonRow(
-                    icon: "arrow.triangle.swap",
-                    text: "Get real-time traffic updates along your route"
-                )
-                
-                PermissionReasonRow(
-                    icon: "bell.badge.fill",
-                    text: "Send timely notifications when you need to leave"
-                )
-            }
-            .padding(.horizontal, DesignTokens.Spacing.xl)
-            
-            Spacer()
-            
-            // Buttons
-            VStack(spacing: DesignTokens.Spacing.md) {
-                if authorizationStatus == .authorizedAlways || authorizationStatus == .authorizedWhenInUse {
-                    CTInfoCard(
-                        title: "Location Enabled",
-                        message: "You're all set! Tap continue.",
-                        icon: "checkmark.circle.fill",
-                        style: .success
-                    )
-                    .padding(.horizontal, DesignTokens.Spacing.xl)
-                }
-                
-                CTButton(
-                    authorizationStatus == .notDetermined ? "Enable Location" : "Continue",
-                    style: .primary
-                ) {
-                    if authorizationStatus == .notDetermined {
-                        viewModel.requestLocationPermission()
-                    } else {
-                        onContinue()
-                    }
-                }
-                .padding(.horizontal, DesignTokens.Spacing.xl)
-                
-                if authorizationStatus == .denied {
-                    CTInfoCard(
-                        title: "Location Denied",
-                        message: "Please enable location in Settings to use CommuteTimely",
-                        icon: "exclamationmark.triangle.fill",
-                        style: .warning
-                    )
-                    .padding(.horizontal, DesignTokens.Spacing.xl)
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(DesignTokens.Colors.primaryFallback().opacity(0.1))
+                        .frame(width: 120, height: 120)
                     
-                    Button("Open Settings") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
+                    Image(systemName: "location.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(DesignTokens.Colors.primaryFallback())
+                }
+                .padding(.bottom, DesignTokens.Spacing.md)
+                
+                // Title
+                Text("Enable Location")
+                    .font(DesignTokens.Typography.title1)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
+                
+                // Description
+                Text("CommuteTimely needs your location to calculate accurate travel times and monitor traffic conditions.")
+                    .font(DesignTokens.Typography.body)
+                    .foregroundColor(DesignTokens.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, DesignTokens.Spacing.xl)
+                
+                Spacer()
+                    .frame(minHeight: 20)
+                
+                // Why we need this
+                VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
+                    PermissionReasonRow(
+                        icon: "map.fill",
+                        text: "Calculate routes from your current location"
+                    )
+                    
+                    PermissionReasonRow(
+                        icon: "arrow.triangle.swap",
+                        text: "Get real-time traffic updates along your route"
+                    )
+                    
+                    PermissionReasonRow(
+                        icon: "bell.badge.fill",
+                        text: "Send timely notifications when you need to leave"
+                    )
+                }
+                .padding(.horizontal, DesignTokens.Spacing.xl)
+                
+                Spacer()
+                    .frame(minHeight: 20)
+                
+                // Buttons
+                VStack(spacing: DesignTokens.Spacing.md) {
+                    if authorizationStatus == .authorizedAlways || authorizationStatus == .authorizedWhenInUse {
+                        CTInfoCard(
+                            title: "Location Enabled",
+                            message: "You're all set! Tap continue.",
+                            icon: "checkmark.circle.fill",
+                            style: .success
+                        )
+                        .padding(.horizontal, DesignTokens.Spacing.xl)
+                    }
+                    
+                    CTButton(
+                        authorizationStatus == .notDetermined ? "Enable Location" : "Continue",
+                        style: .primary
+                    ) {
+                        if authorizationStatus == .notDetermined {
+                            viewModel.requestLocationPermission()
+                        } else {
+                            onContinue()
                         }
                     }
-                    .foregroundColor(DesignTokens.Colors.primaryFallback())
+                    .padding(.horizontal, DesignTokens.Spacing.xl)
+                    
+                    if authorizationStatus == .denied {
+                        CTInfoCard(
+                            title: "Location Denied",
+                            message: "Please enable location in Settings to use CommuteTimely",
+                            icon: "exclamationmark.triangle.fill",
+                            style: .warning
+                        )
+                        .padding(.horizontal, DesignTokens.Spacing.xl)
+                        
+                        Button("Open Settings") {
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
+                            }
+                        }
+                        .foregroundColor(DesignTokens.Colors.primaryFallback())
+                    }
                 }
+                .padding(.bottom, DesignTokens.Spacing.xl)
             }
-            .padding(.bottom, DesignTokens.Spacing.xl)
         }
         .background(DesignTokens.Colors.background)
         .onReceive(viewModel.locationService.authorizationStatus) { status in
