@@ -53,10 +53,21 @@ final class SupabaseAuthService: SupabaseAuthServiceProtocol {
         
         #if DEBUG
         print("[SupabaseAuth] ❌ \(operation) failed: \(errorDescription)")
+        print("[SupabaseAuth] 🔍 Error type: \(type(of: error))")
         
-        // Provide diagnostic hints
+        // Log full error details for debugging
+        if let nsError = error as? NSError {
+            print("[SupabaseAuth] 🔍 Domain: \(nsError.domain), Code: \(nsError.code)")
+            print("[SupabaseAuth] 🔍 UserInfo: \(nsError.userInfo)")
+        }
+        
+        // Provide diagnostic hints based on error patterns
         if errorDescription.contains("Invalid API key") || errorDescription.contains("apikey") {
             print("[SupabaseAuth] 💡 Hint: Check if the Supabase API key is correct")
+        } else if errorDescription.contains("invalid_grant") {
+            print("[SupabaseAuth] 💡 Hint: Apple Sign-In token expired or nonce mismatch. Try again.")
+        } else if errorDescription.contains("OAuth") || errorDescription.contains("provider") {
+            print("[SupabaseAuth] 💡 Hint: Check that Apple Sign-In is enabled in Supabase Dashboard → Auth → Providers")
         } else if errorDescription.contains("network") || errorDescription.contains("connection") {
             print("[SupabaseAuth] 💡 Hint: Check network connectivity")
         } else if errorDescription.contains("RLS") || errorDescription.contains("policy") {
@@ -64,7 +75,7 @@ final class SupabaseAuthService: SupabaseAuthServiceProtocol {
         } else if errorDescription.contains("not found") || errorDescription.contains("404") {
             print("[SupabaseAuth] 💡 Hint: Check if the Supabase URL is correct")
         } else if errorDescription.contains("unauthorized") || errorDescription.contains("401") {
-            print("[SupabaseAuth] 💡 Hint: Session may have expired, try signing in again")
+            print("[SupabaseAuth] 💡 Hint: Check Supabase API key (should be anon key, not service_role)")
         }
         #endif
     }
@@ -145,6 +156,12 @@ final class SupabaseAuthService: SupabaseAuthServiceProtocol {
     }
     
     func signInWithApple(idToken: String, nonce: String) async throws {
+        // Check network connection before attempting Supabase auth
+        if !NetworkMonitor.shared.checkConnection() {
+            Self.logger.error("Sign in with Apple failed: No network connection")
+            throw SupabaseError.offline
+        }
+        
         do {
             // signInWithIdToken returns Session directly in v2
             let session = try await client.auth.signInWithIdToken(
