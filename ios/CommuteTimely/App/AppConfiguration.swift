@@ -46,11 +46,11 @@ enum AppConfiguration {
     // MARK: - API Keys
     
     static var mapboxAccessToken: String? {
-        value(for: "MAPBOX_ACCESS_TOKEN")
+        value(for: "MAPBOX_ACCESS_TOKEN") ?? AppSecrets.mapboxAccessToken
     }
     
     static var weatherbitAPIKey: String? {
-        value(for: "WEATHERBIT_API_KEY")
+        value(for: "WEATHERBIT_API_KEY") ?? AppSecrets.weatherbitAPIKey
     }
     
     static var mixpanelToken: String? {
@@ -207,11 +207,21 @@ enum AppConfiguration {
         logger.info("Bundle ID: \(bundleIdentifier)")
         
         for key in keys {
-            if let value = value(for: key) {
+            // Check environment/Info.plist first
+            if let envValue = value(for: key) {
                 let source = configurationSource[key]?.rawValue ?? "unknown"
-                // Log first few characters only for security
-                let maskedValue = String(value.prefix(8)) + (value.count > 8 ? "..." : "")
+                let maskedValue = String(envValue.prefix(8)) + (envValue.count > 8 ? "..." : "")
                 logger.info("✓ \(key): loaded from \(source) (value: \(maskedValue))")
+                continue
+            }
+            
+            // Check AppSecrets fallback
+            if key == "MAPBOX_ACCESS_TOKEN", !AppSecrets.mapboxAccessToken.isEmpty {
+                let maskedValue = String(AppSecrets.mapboxAccessToken.prefix(8)) + "..."
+                logger.info("✓ \(key): loaded from AppSecrets fallback (value: \(maskedValue))")
+            } else if key == "WEATHERBIT_API_KEY", !AppSecrets.weatherbitAPIKey.isEmpty {
+                let maskedValue = String(AppSecrets.weatherbitAPIKey.prefix(8)) + "..."
+                logger.info("✓ \(key): loaded from AppSecrets fallback (value: \(maskedValue))")
             } else {
                 logger.error("✗ \(key): MISSING")
             }
