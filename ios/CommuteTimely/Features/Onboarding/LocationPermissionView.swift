@@ -90,34 +90,40 @@ struct LocationPermissionView: View {
                         style: .primary
                     ) {
                         if authorizationStatus == .notDetermined {
+                            // First time - request permission
                             viewModel.requestLocationPermission()
-                        } else {
+                        } else if authorizationStatus == .authorizedAlways || authorizationStatus == .authorizedWhenInUse {
+                            // Permission granted - proceed to next step
                             onContinue()
                         }
+                        // If denied (.denied or .restricted), do NOT advance
+                        // User must tap "Open Settings" below to enable location
                     }
                     .padding(.horizontal, DesignTokens.Spacing.xl)
                     
-                    if authorizationStatus == .denied {
+                    if authorizationStatus == .denied || authorizationStatus == .restricted {
                         CTInfoCard(
-                            title: "Location Denied",
-                            message: "Please enable location in Settings to use CommuteTimely",
+                            title: "Location Access Required",
+                            message: "CommuteTimely needs location access to function. Please enable it in Settings.",
                             icon: "exclamationmark.triangle.fill",
                             style: .warning
                         )
                         .padding(.horizontal, DesignTokens.Spacing.xl)
                         
-                        Button("Open Settings") {
+                        CTButton("Open Settings", style: .primary) {
                             if let url = URL(string: UIApplication.openSettingsURLString) {
                                 UIApplication.shared.open(url)
                             }
                         }
-                        .foregroundColor(DesignTokens.Colors.primaryFallback())
+                        .padding(.horizontal, DesignTokens.Spacing.xl)
                     }
                 }
                 .padding(.bottom, DesignTokens.Spacing.xl)
             }
         }
         .background(DesignTokens.Colors.background)
+        .interactiveDismissDisabled(true)  // Prevent swipe-to-dismiss - App Store Guideline 5.1.1
+        .toolbar(.hidden, for: .navigationBar)  // No back button - must complete permission flow
         .onReceive(viewModel.locationService.authorizationStatus) { status in
             authorizationStatus = status
         }

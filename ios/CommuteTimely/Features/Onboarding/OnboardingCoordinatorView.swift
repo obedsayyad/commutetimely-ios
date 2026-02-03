@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import CoreLocation
 
 struct OnboardingCoordinatorView: View {
     @EnvironmentObject var appCoordinator: AppCoordinator
@@ -25,7 +26,13 @@ struct OnboardingCoordinatorView: View {
             case .locationPermission:
                 LocationPermissionView(
                     viewModel: viewModel,
-                    onContinue: { viewModel.nextStep() }
+                    onContinue: { 
+                        // Only allow continuing if we've actually requested permission
+                        // or if status is already determined
+                        if viewModel.hasUserSeenLocationPermissionPrompt() {
+                            viewModel.nextStep() 
+                        }
+                    }
                 )
             case .notificationPermission:
                 NotificationPermissionView(
@@ -54,6 +61,8 @@ struct OnboardingCoordinatorView: View {
 @MainActor
 class OnboardingViewModel: BaseViewModel {
     @Published var currentStep: OnboardingStep = .welcome
+    @Published private(set) var locationPermissionRequested = false
+    @Published var currentAuthorizationStatus: CLAuthorizationStatus = .notDetermined
     
     let locationService: LocationServiceProtocol
     let authManager: AuthSessionController
@@ -70,6 +79,12 @@ class OnboardingViewModel: BaseViewModel {
         self.notificationService = notificationService
         self.analyticsService = analyticsService
         self.authManager = authManager
+        super.init()
+        
+        // Subscribe to auth status
+        locationService.authorizationStatus
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$currentAuthorizationStatus)
     }
     
     func nextStep() {
@@ -100,6 +115,12 @@ class OnboardingViewModel: BaseViewModel {
     
     func requestLocationPermission() {
         locationService.requestAlwaysAuthorization()
+        locationPermissionRequested = true
+    }
+    
+    func hasUserSeenLocationPermissionPrompt() -> Bool {
+        return locationPermissionRequested || 
+               currentAuthorizationStatus != .notDetermined
     }
     
     func requestNotificationPermission() async {

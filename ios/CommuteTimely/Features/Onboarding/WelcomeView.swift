@@ -67,14 +67,14 @@ struct WelcomeView: View {
             subtitle: "Where are you starting from?",
             description: "We use your location to calculate precise travel times and traffic delays in real-time.",
             primaryButtonTitle: viewModel.locationAuthorized ? "Allowed ✓" : "Allow Location Access",
-            secondaryButtonTitle: "Skip for now",
+            secondaryButtonTitle: nil, // Mandatory permission - no skip
             onPrimary: {
                 Task {
                     await viewModel.requestLocationAccess()
                     withAnimation { currentTab += 1 }
                 }
             },
-            onSecondary: { withAnimation { currentTab += 1 } }
+            onSecondary: nil
         )
     }
     
