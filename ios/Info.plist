@@ -25,5 +25,7 @@
 			<string>exclamationmark.triangle</string>
 		</dict>
 	</array>
+	<key>NSCalendarsUsageDescription</key>
+	<string>CommuteTimely needs calendar access to sync your commute schedule and provide timely departure notifications.</string>
 </dict>
 </plist>

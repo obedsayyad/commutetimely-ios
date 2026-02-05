@@ -45,6 +45,9 @@ struct SettingsView: View {
                     // About Section
                     aboutSection
                     
+                    // Legal Section
+                    legalSection
+                    
 
                 }
                 .padding(.vertical, DesignTokens.Spacing.md)
@@ -394,6 +397,46 @@ struct SettingsView: View {
                         Text(AppConfiguration.appVersion)
                             .font(DesignTokens.Typography.body)
                             .foregroundColor(DesignTokens.Colors.textSecondary)
+                    }
+                }
+            }
+            .padding(.horizontal, DesignTokens.Spacing.md)
+        }
+    }
+    
+    private var legalSection: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
+            Text("Legal")
+                .font(DesignTokens.Typography.headline)
+                .foregroundColor(DesignTokens.Colors.textPrimary)
+                .padding(.horizontal, DesignTokens.Spacing.md)
+            
+            CTCard(padding: DesignTokens.Spacing.md, elevation: .medium) {
+                VStack(spacing: DesignTokens.Spacing.md) {
+                    Link(destination: URL(string: "https://www.commutetimely.com/privacy-policy")!) {
+                        HStack {
+                            Text("Privacy Policy")
+                                .font(DesignTokens.Typography.body)
+                                .foregroundColor(DesignTokens.Colors.textPrimary)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(DesignTokens.Colors.textSecondary)
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    Link(destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!) {
+                        HStack {
+                            Text("Terms of Use")
+                                .font(DesignTokens.Typography.body)
+                                .foregroundColor(DesignTokens.Colors.textPrimary)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(DesignTokens.Colors.textSecondary)
+                        }
                     }
                 }
             }
