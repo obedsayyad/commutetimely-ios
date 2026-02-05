@@ -9,7 +9,13 @@ import SwiftUI
 
 struct ProfileAuthView: View {
     @ObservedObject var authManager: AuthSessionController
+    @StateObject private var viewModel = AuthViewModel(
+        authService: DIContainer.shared.supabaseAuthService,
+        authManager: DIContainer.shared.authManager
+    )
+    
     @State private var showingSignOut = false
+    @State private var showingDeleteConfirmation = false
     @State private var showingUserProfile = false
     @State private var avatarUrl: String = ""
     
@@ -33,17 +39,40 @@ struct ProfileAuthView: View {
                         }
                     }
                     .padding(.top, DesignTokens.Spacing.sm)
+                    
+                    // Account Deletion (App Store Requirement)
+                    Button(role: .destructive) {
+                        showingDeleteConfirmation = true
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text("Delete Account")
+                                .font(DesignTokens.Typography.footnote)
+                                .foregroundColor(DesignTokens.Colors.error)
+                            Spacer()
+                        }
+                    }
+                    .padding(.top, DesignTokens.Spacing.md)
                 }
                 .alert("Sign Out?", isPresented: $showingSignOut) {
                     Button("Cancel", role: .cancel) {}
                     Button("Sign Out", role: .destructive) {
                         Task {
-                            // Sign out from Supabase
                             _ = try? await authManager.signOut()
                         }
                     }
                 } message: {
                     Text("Your trips will remain on this device, but won't sync until you sign in again.")
+                }
+                .alert("Delete Account?", isPresented: $showingDeleteConfirmation) {
+                    Button("Cancel", role: .cancel) {}
+                    Button("Delete", role: .destructive) {
+                        Task {
+                            await viewModel.deleteAccount()
+                        }
+                    }
+                } message: {
+                    Text("This action cannot be undone. All your data will be permanently deleted.")
                 }
                 .sheet(isPresented: $showingUserProfile) {
                     AccountView()
@@ -53,7 +82,6 @@ struct ProfileAuthView: View {
                 }
                 .onChange(of: showingUserProfile) { _, isShowing in
                     if !isShowing {
-                        // Refresh avatar when returning from account page
                         Task { await loadAvatar() }
                     }
                 }

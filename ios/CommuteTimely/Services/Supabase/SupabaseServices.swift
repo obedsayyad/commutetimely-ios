@@ -126,6 +126,7 @@ protocol SupabaseAuthServiceProtocol: AnyObject {
     func signInWithGoogle(idToken: String) async throws
     func signOut() async throws
     func restoreSessionFromKeychain() async throws
+    func deleteAccount() async throws
 }
 
 protocol UserProfileServiceProtocol: AnyObject {
@@ -194,6 +195,7 @@ final class NoopSupabaseAuthService: SupabaseAuthServiceProtocol {
     func signInWithGoogle(idToken: String) async throws {}
     func signOut() async throws {}
     func restoreSessionFromKeychain() async throws {}
+    func deleteAccount() async throws {}
 }
 
 @MainActor

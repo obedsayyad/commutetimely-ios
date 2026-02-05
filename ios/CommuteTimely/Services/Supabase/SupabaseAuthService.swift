@@ -213,6 +213,26 @@ final class SupabaseAuthService: SupabaseAuthServiceProtocol {
         }
     }
     
+    func deleteAccount() async throws {
+        Self.logger.info("Requesting account deletion")
+        
+        do {
+            // Call Supabase Edge Function to delete the user
+            // This requires an RPC function named 'delete_user' to be set up in Supabase
+            try await client.database.rpc("delete_user").execute()
+            
+            // Sign out locally
+            try await signOut()
+            
+            Self.logger.info("Account deletion successful")
+        } catch {
+            Self.logger.error("Account deletion failed: \(error.localizedDescription)")
+            // Try to sign out anyway if deletion fails/partially succeeds
+            try? await signOut()
+            throw SupabaseError.from(error: error, logger: Self.logger)
+        }
+    }
+    
     func restoreSessionFromKeychain() async throws {
         guard let data = try? KeychainHelper.load(),
               let sessionData = try? JSONDecoder().decode(SessionData.self, from: data) else {

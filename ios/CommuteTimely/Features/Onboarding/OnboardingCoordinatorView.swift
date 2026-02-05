@@ -23,22 +23,6 @@ struct OnboardingCoordinatorView: View {
             switch viewModel.currentStep {
             case .welcome:
                 WelcomeView(onContinue: { viewModel.nextStep() })
-            case .locationPermission:
-                LocationPermissionView(
-                    viewModel: viewModel,
-                    onContinue: { 
-                        // Only allow continuing if we've actually requested permission
-                        // or if status is already determined
-                        if viewModel.hasUserSeenLocationPermissionPrompt() {
-                            viewModel.nextStep() 
-                        }
-                    }
-                )
-            case .notificationPermission:
-                NotificationPermissionView(
-                    viewModel: viewModel,
-                    onContinue: { viewModel.nextStep() }
-                )
             case .optionalAuth:
                 OnboardingAuthView(
                     authManager: viewModel.authManager,
@@ -49,6 +33,8 @@ struct OnboardingCoordinatorView: View {
                 Color.clear.onAppear {
                     appCoordinator.completeOnboarding()
                 }
+            case .locationPermission, .notificationPermission:
+                 EmptyView()
             }
         }
         .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
@@ -91,7 +77,8 @@ class OnboardingViewModel: BaseViewModel {
         withAnimation(DesignTokens.Animation.adaptive(DesignTokens.Animation.springSmooth)) {
             switch currentStep {
             case .welcome:
-                currentStep = .locationPermission
+                // Skip separate permission screens as they are now handled in the Welcome wizard
+                currentStep = .optionalAuth
             case .locationPermission:
                 currentStep = .notificationPermission
             case .notificationPermission:

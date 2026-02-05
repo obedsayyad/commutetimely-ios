@@ -74,6 +74,23 @@ class AuthViewModel: ObservableObject {
         isLoading = false
     }
     
+    func deleteAccount() async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            try await authService.deleteAccount()
+            // Cleanup state
+            if let controller = authManager as? SupabaseAuthController {
+                await controller.refreshUser()
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
     func signInWithApple() async {
         // This method is kept for programmatic Apple Sign-In if needed
         // Check network connection first

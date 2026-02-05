@@ -27,5 +27,9 @@
 	</array>
 	<key>NSCalendarsUsageDescription</key>
 	<string>CommuteTimely needs calendar access to sync your commute schedule and provide timely departure notifications.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>CommuteTimely needs your location to calculate accurate travel times and monitor traffic conditions for your commute.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>CommuteTimely needs your location to provide timely departure alerts and background traffic monitoring.</string>
 </dict>
 </plist>
