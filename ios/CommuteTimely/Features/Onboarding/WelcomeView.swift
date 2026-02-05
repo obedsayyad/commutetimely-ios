@@ -66,7 +66,7 @@ struct WelcomeView: View {
             title: "Smart Location",
             subtitle: "Where are you starting from?",
             description: "We use your location to calculate precise travel times and traffic delays in real-time.",
-            primaryButtonTitle: viewModel.locationAuthorized ? "Allowed ✓" : "Allow Location Access",
+            primaryButtonTitle: "Continue",
             secondaryButtonTitle: nil, // Mandatory permission - no skip
             onPrimary: {
                 Task {
@@ -84,15 +84,15 @@ struct WelcomeView: View {
             title: "Auto-Sync",
             subtitle: "Connect your schedule",
             description: "Automatically see departure times for your upcoming meetings and work events.",
-            primaryButtonTitle: viewModel.calendarAuthorized ? "Connected ✓" : "Connect Calendar",
-            secondaryButtonTitle: "Skip",
+            primaryButtonTitle: "Continue",
+            secondaryButtonTitle: nil,
             onPrimary: {
                 Task {
                     await viewModel.requestCalendarAccess()
                     withAnimation { currentTab += 1 }
                 }
             },
-            onSecondary: { withAnimation { currentTab += 1 } }
+            onSecondary: nil
         )
     }
     
@@ -102,15 +102,15 @@ struct WelcomeView: View {
             title: "Critical Alerts",
             subtitle: "Never be late",
             description: "Enable notifications to get 'Leave Now' alerts that break through focus modes.",
-            primaryButtonTitle: "Enable Alerts & Finish",
-            secondaryButtonTitle: "Maybe Later",
+            primaryButtonTitle: "Continue",
+            secondaryButtonTitle: nil,
             onPrimary: {
                 Task {
                     await viewModel.requestNotificationAccess()
                     onContinue()
                 }
             },
-            onSecondary: { onContinue() }
+            onSecondary: nil
         )
     }
 }
